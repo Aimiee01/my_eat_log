@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
 
 class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({Key? key}) : super(key: key);
@@ -13,18 +12,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('favorite'),
+        title: const Text('favorite'),
       ),
-      body: ListView(
-        children: [
-          MyLogItem(
-            title: 'shop name',
-            subTitle: 'item name',
-            titleColor: Colors.blue,
-            leading: Image.asset('assets/images/pizza/jpg'),
-          ),
-        ],
-      ),
+      body: Container(),
     );
   }
 }
