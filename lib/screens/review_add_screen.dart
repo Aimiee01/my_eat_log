@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:my_eat_log/review.dart';
 
-class ItemEditScreen extends StatefulWidget {
-  const ItemEditScreen({Key? key}) : super(key: key);
+import '../item_add_button.dart';
+
+class ReviewAddScreen extends StatefulWidget {
+  const ReviewAddScreen({Key? key}) : super(key: key);
 
   @override
-  _ItemEditScreenState createState() => _ItemEditScreenState();
+  _ReviewAddScreenState createState() => _ReviewAddScreenState();
 }
 
-class _ItemEditScreenState extends State<ItemEditScreen> {
+class _ReviewAddScreenState extends State<ReviewAddScreen> {
   final _shopNameController = TextEditingController();
   final _menuNameController = TextEditingController();
   final _commentController = TextEditingController();
@@ -29,7 +31,7 @@ class _ItemEditScreenState extends State<ItemEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('編集画面')),
+      appBar: AppBar(title: const Text('新規登録')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(15),
@@ -108,45 +110,4 @@ class _ItemEditScreenState extends State<ItemEditScreen> {
   }
 }
 
-class ItemAddButton extends StatelessWidget {
-  const ItemAddButton(
-    this.shopNameController,
-    this.menuNameController,
-    this.commentController,
-    this.globalKey,
-  );
-  final TextEditingController shopNameController;
-  final TextEditingController menuNameController;
-  final TextEditingController commentController;
 
-  // <FormState>を必ず入れる(ジェネリクス)
-  final GlobalKey<FormState> globalKey;
-  @override
-  Widget build(BuildContext context) {
-    Future<void> addItem() async {
-      if (globalKey.currentState!.validate()) {
-        return reviewsRef
-            .add(Review(
-              shopName: shopNameController.text,
-              menuName: menuNameController.text,
-              comment: commentController.text,
-            ))
-            .then((value) => ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('登録されました'))));
-      }
-    }
-
-    return ElevatedButton(
-      onPressed: () async {
-        await addItem();
-        Navigator.pop(context);
-      },
-      style: ElevatedButton.styleFrom(
-          primary: Colors.blue, onPrimary: Colors.white),
-      child: const Text(
-        '登録',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-      ),
-    );
-  }
-}

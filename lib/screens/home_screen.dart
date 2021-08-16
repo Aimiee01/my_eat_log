@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:my_eat_log/review.dart';
 import 'package:my_eat_log/screens/favorite_screen.dart';
+import 'package:my_eat_log/screens/review_edit_screen.dart';
 import 'package:my_eat_log/setting_screen.dart';
-import 'item_edit_screen.dart';
+import 'review_add_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,6 +16,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    // コレクションを取得する場合の書き方
+    final snapshots = reviewsRef.snapshots();
     return Scaffold(
       appBar: AppBar(
         title: const Text('MyLog'),
@@ -36,56 +41,48 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: const Icon(Icons.settings),
         ),
       ),
-      body: ListView.separated(
-          itemBuilder: (BuildContext context, int index) {
-            return MyLogItem(
-              title: 'shopName',
-              subTitle: 'menuName',
-              titleColor: Colors.blue,
-              leading: Image.asset('assets/images/pizza/jpg'),
-            );
-          },
-          separatorBuilder: (BuildContext context, int index) {
-            return const SizedBox(height: 10);
-          },
-          itemCount: 30),
-    );
-  }
-}
-
-
-
-class MyLogItem extends StatelessWidget {
-  const MyLogItem(
-      {required this.title,
-      required this.subTitle,
-      required this.leading,
-      required this.titleColor});
-
-  final String title;
-  final String subTitle;
-  final Widget leading;
-  final Color titleColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: ListTile(
-        trailing: const Icon(Icons.favorite),
-        leading: SizedBox(
-          width: 60,
-          height: 60,
-          child: Image.asset('assets/images/pizza.jpg'),
-        ),
-        title: const Text('shop name'),
-        subtitle: const Text('menu name'),
-        onTap: () => Navigator.of(context).push(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.of(context).push(
           MaterialPageRoute<void>(
-            builder: (BuildContext context) => const ItemEditScreen(),
+            builder: (BuildContext context) => const ReviewAddScreen(),
           ),
         ),
+        child: const Icon(Icons.restaurant),
       ),
+      // ↓取得したコレクションをリスト化
+      body: StreamBuilder<QuerySnapshot<Review>>(
+          stream: snapshots,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              // snapshotにdataがあれば取得して表示
+              final snapshotData = snapshot.data!;
+              return ListView.separated(
+                itemBuilder: (context, index) {
+                  // ↓docのどこのデータか
+                  final doc = snapshotData.docs[index];
+                  final review = doc.data();
+                  return ListTile(
+                    title: Text(review.shopName),
+                    subtitle: Text(review.menuName),
+                    leading: Image.asset('assets/images/pizza.jpg'),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) =>
+                        // 該当するdocを渡す
+                             ReviewEditScreen(reviewDoc: doc),
+                      ),
+                    ),
+                  );
+                },
+                // ↓ListTileの間隔をあける
+                separatorBuilder: (context, index) {
+                  return const Divider();
+                },
+                itemCount: snapshotData.docs.length,
+              );
+            }
+            return const Text('読み込み中');
+          }),
     );
   }
 }
