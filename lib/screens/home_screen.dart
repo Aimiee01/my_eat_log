@@ -62,14 +62,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   final doc = snapshotData.docs[index];
                   final review = doc.data();
                   return ListTile(
+                    // todo:画像を表示
+                    // leading: Image.network(review.imageUrl),
                     title: Text(review.shopName),
                     subtitle: Text(review.menuName),
-                    leading: Image.asset('assets/images/pizza.jpg'),
+                    // leading: Image.network('src'),
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (BuildContext context) =>
-                        // 該当するdocを渡す
-                             ReviewEditScreen(reviewDoc: doc),
+                            // 該当するdocを渡す
+                            ReviewEditScreen(reviewDoc: doc),
                       ),
                     ),
                   );

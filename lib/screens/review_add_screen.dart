@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:my_eat_log/review.dart';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../item_add_button.dart';
 
 class ReviewAddScreen extends StatefulWidget {
@@ -15,6 +16,19 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
   final _menuNameController = TextEditingController();
   final _commentController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  File? imageFile;
+
+  Future<void> getImage() async {
+    // 修正してもらった部分
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) {
+      return;
+    }
+    setState(() {
+      imageFile = File(pickedFile.path);
+    });
+  }
 
   // String get _text =>
   //     '${_shopNameController.text} : ${_menuNameController.text}';
@@ -38,6 +52,23 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              SizedBox(
+                width: 200,
+                child: Container(
+                  child: imageFile == null
+                      ? const Center(child: Text('画像を選択してください'))
+                      : Image.file(imageFile!),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 30),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(primary: Colors.blue[600]),
+                  onPressed: getImage,
+                  // 画像をカメラロールを開く
+                  child: const Text('画像を追加'),
+                ),
+              ),
               Form(
                 key: _formKey,
                 child: Expanded(
@@ -96,12 +127,8 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
                   ],
                 ),
               ),
-              ItemAddButton(
-                _shopNameController,
-                _menuNameController,
-                _commentController,
-                _formKey,
-              ),
+              ItemAddButton(_shopNameController, _menuNameController,
+                  _commentController, _formKey, imageFile),
             ],
           ),
         ),
@@ -109,5 +136,3 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
     );
   }
 }
-
-

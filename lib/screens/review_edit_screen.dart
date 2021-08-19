@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:my_eat_log/review.dart';
 import '../item_update_button.dart';
+import 'item_delete_button.dart';
 
 class ReviewEditScreen extends StatefulWidget {
   const ReviewEditScreen({
@@ -22,6 +25,20 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   final _shopNameController = TextEditingController();
   final _menuNameController = TextEditingController();
   late TextEditingController _commentController;
+  // 初期値は空なので？（lateは使えない）
+  File? imageFile;
+
+  Future<void> getImage() async {
+    // 修正してもらった部分
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) {
+      return;
+    }
+    setState(() {
+      imageFile = File(pickedFile.path);
+    });
+  }
 
   @override
   void initState() {
@@ -37,18 +54,36 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   @override
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-    final isUpdate = reviewsRef != null;
 
     // コメントを更新したいとき（reference は参照）
     // widget.reviewDoc.reference.update({'comment': ''});
 
     return Scaffold(
-      appBar: AppBar(title: Text(isUpdate ? '編集画面' : '新規登録')),
+      appBar: AppBar(
+        title: const Text('編集画面'),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(15),
           child: Column(
             children: [
+              SizedBox(
+                width: 200,
+                child: Container(
+                  child: imageFile == null
+                      ? const Center(child: Text('画像を選択してください'))
+                      : Image.file(imageFile!),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 30),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(primary: Colors.blue[600]),
+                  onPressed: getImage,
+                  // 画像をカメラロールを開く
+                  child: const Text('画像を追加'),
+                ),
+              ),
               Form(
                 key: _formKey,
                 child: Expanded(
@@ -99,15 +134,14 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                 _menuNameController,
                 _commentController,
                 _formKey,
+                widget.reviewDoc,
+                imageFile,
               ),
+              ItemDeleteButton(widget.reviewDoc),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Future<void> updateReview() {
-    return widget.reviewDoc.reference.update({'comment': _commentController});
   }
 }
