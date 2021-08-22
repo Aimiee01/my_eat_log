@@ -28,27 +28,34 @@ class ItemAddButton extends StatelessWidget {
     Future<void> addItem() async {
       // validateフォームの入力状態を検証
       if (globalKey.currentState!.validate()) {
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final imagePath = 'user-id/menu-images/upload-pic-$timestamp.png';
-        // if文で囲む
-
-        await FirebaseStorage.instance
-            // ファイル名を秒まで入れた文字列にする
-            .ref(imagePath)
-            .putFile(imageFile!);
+        // ファイル名を秒まで入れた文字列にする
+        String? imagePath;
+        String? imageUrl;
+        if (imageFile != null) {
+          // timestampは画像がある時にしか使わないのでこの場所に書く
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          imagePath = 'user-id/menu-images/upload-pic-$timestamp.png';
+          final imageRef = FirebaseStorage.instance.ref(imagePath);
+          // Storageに画像を保存
+          await imageRef.putFile(imageFile!);
+          // 保存した画像のURLを取得して、あらかじめ用意していた変数に入れる
+          imageUrl = await imageRef.getDownloadURL();
+        }
 
         await reviewsRef
             .add(Review(
               shopName: shopNameController.text,
               menuName: menuNameController.text,
               comment: commentController.text,
-              imageUrl: imagePath,
-              // imageUrlにはファイル名を指定する
+              imagePath: imagePath,
+              imageUrl: imageUrl,
+              // imagePathにはファイル名を指定する
             ))
             .then((value) => ScaffoldMessenger.of(context)
                 .showSnackBar(const SnackBar(content: Text('登録されました'))));
-
-        return;
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('必要な情報を入力してください')));
       }
     }
 
