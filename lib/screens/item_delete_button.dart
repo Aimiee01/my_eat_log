@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../review.dart';
+import '../firebase/review.dart';
 
 class ItemDeleteButton extends StatelessWidget {
   const ItemDeleteButton(this.reviewDoc, {Key? key}) : super(key: key);

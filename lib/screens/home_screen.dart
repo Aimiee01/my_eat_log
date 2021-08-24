@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:my_eat_log/review.dart';
+import 'package:my_eat_log/firebase/review.dart';
 import 'package:my_eat_log/screens/favorite_screen.dart';
 import 'package:my_eat_log/screens/review_edit_screen.dart';
 import 'package:my_eat_log/setting_screen.dart';
@@ -18,6 +18,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     // コレクションを取得する場合の書き方
     final snapshots = reviewsRef.snapshots();
+    // ryunosuke add
+    // snapshots.map((snapshot) => snapshot.docs.map((e) {
+    //       final review = e.data();
+    //       final image = reviewImagesRef(e.id).snapshots().first;
+    //     }));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('MyLog'),
@@ -58,14 +64,17 @@ class _HomeScreenState extends State<HomeScreen> {
               final snapshotData = snapshot.data!;
               return ListView.separated(
                 itemBuilder: (context, index) {
-                  // ↓docのどこのデータか
+                  // ↓どのデータか(docsはクエリの結果として得られた配列)
                   final doc = snapshotData.docs[index];
+                  // mapとして取り出しreviewに代入
                   final review = doc.data();
+                  // 1枚目の写真があれば使い、なければstorageUrlを利用する
+                  final latestImageUrl = review.latestImageUrl;
                   return ListTile(
                     // imageUrlがあれば表示
-                    leading: review.imageUrl == null
+                    leading: latestImageUrl == null
                         ? const Icon(Icons.image_outlined)
-                        : Image.network(review.imageUrl!),
+                        : Image.network(latestImageUrl),
                     title: Text(review.shopName),
                     subtitle: Text(review.menuName),
 
@@ -73,7 +82,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute<void>(
                         builder: (BuildContext context) =>
                             // 該当するdocを渡す
-                            ReviewEditScreen(reviewDoc: doc),
+                            ReviewEditScreen(
+                          reviewDoc: doc,
+                        ),
                       ),
                     ),
                   );

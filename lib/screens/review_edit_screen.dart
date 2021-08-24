@@ -4,7 +4,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:my_eat_log/review.dart';
+import 'package:my_eat_log/firebase/review.dart';
+import 'package:my_eat_log/firebase/review_image.dart';
 import 'item_delete_button.dart';
 
 class ReviewEditScreen extends StatefulWidget {
@@ -54,6 +55,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   void initState() {
     super.initState();
     final review = widget.reviewDoc.data();
+
     // 2通りの書き方がある
     _shopNameController.value =
         _shopNameController.value.copyWith(text: review.shopName);
@@ -64,8 +66,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   @override
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-    final review = widget.reviewDoc.data();
-    final imageUrl = review.imageUrl;
+    // 該当するreviewのreviewImagesを取得
+    final reviewImageFuture = reviewImagesRef(widget.reviewDoc.id).get();
 
     // コメントを更新したいとき（reference は参照）
     // widget.reviewDoc.reference.update({'comment': ''});
@@ -74,88 +76,104 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
         title: const Text('編集画面'),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_imageFile != null)
-                  Image.file(_imageFile!)
-                else if (imageUrl != null)
-                  Image.network(imageUrl)
-                else
-                  const Icon(Icons.image_outlined),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 30),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(primary: Colors.blue[600]),
-                    onPressed: getImage,
-                    // 画像をカメラロールを開く
-                    child: const Text('画像を追加'),
-                  ),
-                ),
-                Form(
-                  key: _formKey,
+        // FutureBuilderを使ってreviewImageのdocumentを入れる
+        child: FutureBuilder<QuerySnapshot<ReviewImage>>(
+            future: reviewImageFuture,
+            builder: (context, asyncValue) {
+              // 写真がなければ空白を表示
+              if (!asyncValue.hasData || asyncValue.hasError) {
+                return const SizedBox();
+              }
+              final snapshot = asyncValue.data!;
+              // 写真の表示をしたい場合は以下を使う
+              snapshot.docs;
+              final imagesDoc = snapshot.docs.last.id;
+              return Padding(
+                padding: const EdgeInsets.all(15),
+                child: SingleChildScrollView(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      TextFormField(
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'お店の名前を入力してください';
-                          }
-                          return null;
-                        },
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.food_bank_outlined),
-                          border: OutlineInputBorder(),
-                          labelText: 'お店の名前 *',
-                        ),
-                        controller: _shopNameController,
-                      ),
+                      // todo カメラロールで選択された写真を優先する
+                      if (_imageFile != null)
+                        Image.file(_imageFile!)
+                      else if (imagesDoc != null)
+                        Image.network(imagesDoc)
+                      else
+                        // 何も選ばれなければIconを表示
+                        const Icon(Icons.image_outlined),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 30),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.fastfood),
-                            border: OutlineInputBorder(),
-                            hintText: '登録したい商品名を入力してください',
-                            labelText: '商品名 *',
-                          ),
-                          controller: _menuNameController,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              primary: Colors.blue[600]),
+                          onPressed: getImage,
+                          // 画像をカメラロールを開く
+                          child: const Text('画像を追加'),
                         ),
                       ),
-                      TextFormField(
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.comment),
-                          border: OutlineInputBorder(),
-                          hintText: '感想を入力してください',
-                          labelText: '感想 *',
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'お店の名前を入力してください';
+                                }
+                                return null;
+                              },
+                              decoration: const InputDecoration(
+                                icon: Icon(Icons.food_bank_outlined),
+                                border: OutlineInputBorder(),
+                                labelText: 'お店の名前 *',
+                              ),
+                              controller: _shopNameController,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 30),
+                              child: TextFormField(
+                                decoration: const InputDecoration(
+                                  icon: Icon(Icons.fastfood),
+                                  border: OutlineInputBorder(),
+                                  hintText: '登録したい商品名を入力してください',
+                                  labelText: '商品名 *',
+                                ),
+                                controller: _menuNameController,
+                              ),
+                            ),
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                icon: Icon(Icons.comment),
+                                border: OutlineInputBorder(),
+                                hintText: '感想を入力してください',
+                                labelText: '感想 *',
+                              ),
+                              controller: _commentController,
+                              minLines: 6,
+                              maxLines: 10,
+                            ),
+                          ],
                         ),
-                        controller: _commentController,
-                        minLines: 6,
-                        maxLines: 10,
                       ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 15),
+                        child: _ItemUpdateButton(
+                          _shopNameController,
+                          _menuNameController,
+                          _commentController,
+                          _formKey,
+                          widget.reviewDoc,
+                          _imageFile,
+                        ),
+                      ),
+                      ItemDeleteButton(widget.reviewDoc),
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 15),
-                  child: _ItemUpdateButton(
-                    _shopNameController,
-                    _menuNameController,
-                    _commentController,
-                    _formKey,
-                    widget.reviewDoc,
-                    _imageFile,
-                  ),
-                ),
-                ItemDeleteButton(widget.reviewDoc),
-              ],
-            ),
-          ),
-        ),
+              );
+            }),
       ),
     );
   }
@@ -190,25 +208,27 @@ class _ItemUpdateButtonState extends State<_ItemUpdateButton> {
   Widget build(BuildContext context) {
     /// レビューを更新する
     Future<void> updateItem() async {
-      String? imageUrl;
-      String? imagePath;
+      String? storageUrl;
+      String? storagePath;
       // 画像が選択されていればfirebase Storageに保存する
       if (widget.imageFile != null) {
         // timestampは画像がある時にしか使わないのでこの場所に書く
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        imagePath = 'user-id/menu-images/upload-pic-$timestamp.png';
-        final imageRef = FirebaseStorage.instance.ref(imagePath);
+        storagePath = 'user-id/menu-images/upload-pic-$timestamp.png';
+        final imageRef = FirebaseStorage.instance.ref(storagePath);
         // Storageに画像を保存
         await imageRef.putFile(widget.imageFile!);
         // 保存した画像のURLを取得して、あらかじめ用意していた変数に入れる
-        imageUrl = await imageRef.getDownloadURL();
+        storageUrl = await imageRef.getDownloadURL();
       }
       await reviewsRef.doc(widget.reviewDoc.id).update({
         'shopName': widget.shopNameController.text,
         'menuName': widget.menuNameController.text,
         'comment': widget.commentController.text,
-        if (imagePath != null) 'imagePath': imagePath,
-        if (imageUrl != null) 'imageUrl': imageUrl,
+        // imagePath imageUrlがあればアップデート
+        if (storagePath != null) 'imagePath': storagePath,
+        if (storageUrl != null) 'imageUrl': storageUrl,
+        // サーバーの時刻を保存
         'updatedAt': FieldValue.serverTimestamp(),
       }
           // imagePathにはファイル名を指定する
