@@ -30,6 +30,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   // 初期値は空なので？（lateは使えない）
   File? _imageFile;
 
+  late Future<QuerySnapshot<ReviewImage>> reviewImageFuture;
+
   // Future<void> downloadFile(String imagePath) async {
   //   final imageurl = widget.storage.ref().child('images/$imagePath');
   //   final String url = await ref.getDownloadURL();
@@ -47,6 +49,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
       return;
     }
     setState(() {
+      /// ImagePickerで選択された画像
       _imageFile = File(pickedFile.path);
     });
   }
@@ -60,13 +63,15 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
         _shopNameController.value.copyWith(text: review.shopName);
     _menuNameController.text = review.menuName;
     _commentController = TextEditingController(text: review.comment);
+    // 該当するreviewのreviewImagesを取得
+    reviewImageFuture = reviewImagesRef(widget.reviewDoc.id)
+        .orderBy(ReviewImageField.updatedAt)
+        .get();
   }
 
   @override
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-    // 該当するreviewのreviewImagesを取得
-    final reviewImageFuture = reviewImagesRef(widget.reviewDoc.id).get();
 
     // コメントを更新したいとき（reference は参照）
     // widget.reviewDoc.reference.update({'comment': ''});
@@ -84,9 +89,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                 return const SizedBox();
               }
               final snapshot = asyncValue.data!;
-              // 写真の表示をしたい場合は以下を使う
-              snapshot.docs.first;
-
+              // 以下を使って写真を表示
               return Padding(
                 padding: const EdgeInsets.all(15),
                 child: SingleChildScrollView(
@@ -94,29 +97,14 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // カメラロールで選択された写真を優先する
-                      if (_imageFile != null)
-                        Image.file(_imageFile!)
-                      else if (snapshot.docs.first.data() != null)
-                        Image.network(snapshot.docs.first.data().storageUrl)
-                      else
-                        // 何も選ばれなければIconを表示
-                        const Icon(Icons.image_outlined),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 30),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              primary: Colors.blue[600]),
-                          onPressed: getImage,
-                          // 画像をカメラロールを開く
-                          child: const Text('画像を追加'),
-                        ),
-                      ),
                       Form(
                         key: _formKey,
                         child: Column(
                           children: [
+                            const SizedBox(height: 4),
                             TextFormField(
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'お店の名前を入力してください';
@@ -133,31 +121,77 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 30),
                               child: TextFormField(
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return '品名を入力してください';
+                                  }
+                                  return null;
+                                },
                                 decoration: const InputDecoration(
                                   icon: Icon(Icons.fastfood),
                                   border: OutlineInputBorder(),
-                                  hintText: '登録したい商品名を入力してください',
                                   labelText: '商品名 *',
                                 ),
                                 controller: _menuNameController,
                               ),
                             ),
                             TextFormField(
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return '感想を入力してください';
+                                }
+                                return null;
+                              },
                               decoration: const InputDecoration(
                                 icon: Icon(Icons.comment),
                                 border: OutlineInputBorder(),
-                                hintText: '感想を入力してください',
                                 labelText: '感想 *',
                               ),
                               controller: _commentController,
-                              minLines: 6,
-                              maxLines: 10,
+                              minLines: 4,
+                              maxLines: 8,
                             ),
                           ],
                         ),
                       ),
+                      // カメラロールで選択された写真を優先する
+                      if (_imageFile != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: SizedBox(
+                              width: 200, child: Image.file(_imageFile!)),
+                        )
+
+                      /// isNotEmptyを使って画像がある時はそれを表示する処理
+                      else if (snapshot.docs.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: SizedBox(
+                              width: 200,
+                              child: Image.network(
+                                  snapshot.docs.last.data().storageUrl)),
+                        )
+                      else
+                        // 何も選ばれなければIconを表示
+                        const Icon(Icons.image_outlined),
                       Padding(
-                        padding: const EdgeInsets.only(top: 15),
+                        padding: const EdgeInsets.only(top: 20),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              onPrimary: Colors.blue[600],
+                              primary: Colors.blue[100]),
+                          onPressed: getImage,
+                          // 画像をカメラロールを開く
+                          child: const Text('写真を選択'),
+                        ),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.only(top: 30),
                         child: _ItemUpdateButton(
                           _shopNameController,
                           _menuNameController,
@@ -178,7 +212,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   }
 }
 
-class _ItemUpdateButton extends StatefulWidget {
+class _ItemUpdateButton extends StatelessWidget {
   _ItemUpdateButton(
     this.shopNameController,
     this.menuNameController,
@@ -199,39 +233,52 @@ class _ItemUpdateButton extends StatefulWidget {
   File? imageFile;
 
   @override
-  _ItemUpdateButtonState createState() => _ItemUpdateButtonState();
-}
-
-class _ItemUpdateButtonState extends State<_ItemUpdateButton> {
-  @override
   Widget build(BuildContext context) {
-    /// レビューを更新する
     Future<void> updateItem() async {
+      // validateフォームの入力状態を検証
+      if (!globalKey.currentState!.validate()) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('必要な情報を入力してください')));
+        return;
+      }
+
+      /// レビューを更新する
+      ReviewImage? reviewImage;
       String? storageUrl;
       String? storagePath;
       // 画像が選択されていればfirebase Storageに保存する
-      if (widget.imageFile != null) {
+      if (imageFile != null) {
         // timestampは画像がある時にしか使わないのでこの場所に書く
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         storagePath = 'user-id/menu-images/upload-pic-$timestamp.png';
         final imageRef = FirebaseStorage.instance.ref(storagePath);
         // Storageに画像を保存
-        await imageRef.putFile(widget.imageFile!);
+        await imageRef.putFile(imageFile!);
         // 保存した画像のURLを取得して、あらかじめ用意していた変数に入れる
         storageUrl = await imageRef.getDownloadURL();
+        // 追加する画像のクラスを作成
+        reviewImage = ReviewImage(
+          storagePath: storagePath,
+          storageUrl: storageUrl,
+          updatedAt: Timestamp.now(),
+        );
       }
-      await reviewsRef.doc(widget.reviewDoc.id).update({
-        ReviewField.shopName: widget.shopNameController.text,
-        ReviewField.menuName: widget.menuNameController.text,
-        ReviewField.comment: widget.commentController.text,
+      await reviewsRef.doc(reviewDoc.id).update({
+        ReviewField.shopName: shopNameController.text,
+        ReviewField.menuName: menuNameController.text,
+        ReviewField.comment: commentController.text,
         if (storageUrl != null) ReviewField.latestImageUrl: storageUrl,
-        // サーバーの時刻を保存
+        // todo サーバーの時刻を保存
         // 'updatedAt': FieldValue.serverTimestamp(),
       }
           // imagePathにはファイル名を指定する
           ).then((value) => ScaffoldMessenger.of(
               context)
           .showSnackBar(const SnackBar(content: Text('更新されました'))));
+      if (reviewImage == null) {
+        return;
+      }
+      await reviewImagesRef(reviewDoc.id).add(reviewImage);
     }
 
     return ElevatedButton(

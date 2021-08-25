@@ -46,7 +46,7 @@ class ItemAddButton extends StatelessWidget {
         final imageRef = FirebaseStorage.instance.ref(storagePath);
         // Storageに画像を保存
         await imageRef.putFile(imageFile!);
-        // 保存した画像のURLを取得して、あらかじめ用意していた変数に入れる
+        // あらかじめ用意していた変数に、保存した画像のURLを取得して入れる
         final storageUrl = await imageRef.getDownloadURL();
         // 新しく追加する画像のクラスを作成
         reviewImage = ReviewImage(

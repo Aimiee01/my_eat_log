@@ -52,67 +52,83 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              SizedBox(
-                width: 200,
-                child: Container(
-                  child: imageFile == null
-                      ? const Center(child: Text('画像を選択してください'))
-                      : Image.file(imageFile!),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(primary: Colors.blue[600]),
-                  onPressed: getImage,
-                  // 画像をカメラロールを開く
-                  child: const Text('画像を追加'),
-                ),
-              ),
               Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return '店舗名を入力してください';
+                        }
+                        return null;
+                      },
+                      decoration: const InputDecoration(
+                        icon: Icon(Icons.food_bank_outlined),
+                        border: OutlineInputBorder(),
+                        labelText: '店舗名 *',
+                      ),
+                      controller: _shopNameController,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: TextFormField(
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return '登録したいお店の名前を入力してください';
+                            return '品名を入力してください';
                           }
                           return null;
                         },
                         decoration: const InputDecoration(
-                          icon: Icon(Icons.food_bank_outlined),
+                          icon: Icon(Icons.fastfood),
                           border: OutlineInputBorder(),
-                          labelText: 'お店の名前 *',
+                          hintText: '品名を入力してください',
+                          labelText: '品名 *',
                         ),
-                        controller: _shopNameController,
+                        controller: _menuNameController,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            icon: Icon(Icons.fastfood),
-                            border: OutlineInputBorder(),
-                            hintText: '登録したい商品名を入力してください',
-                            labelText: '商品名 *',
-                          ),
-                          controller: _menuNameController,
+                    ),
+                    TextFormField(
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return '感想を入力してください';
+                        }
+                        return null;
+                      },
+                      decoration: const InputDecoration(
+                        icon: Icon(Icons.comment),
+                        border: OutlineInputBorder(),
+                        hintText: '感想を入力してください',
+                        labelText: '感想 *',
+                      ),
+                      controller: _commentController,
+                      minLines: 6,
+                      maxLines: 10,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: SizedBox(
+                        width: 200,
+                        child: Container(
+                          child: imageFile == null
+                              ? const Center(child: Text('画像を選択してください'))
+                              : Image.file(imageFile!),
                         ),
                       ),
-                      TextFormField(
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.comment),
-                          border: OutlineInputBorder(),
-                          hintText: '感想を入力してください',
-                          labelText: '感想 *',
-                        ),
-                        controller: _commentController,
-                        minLines: 6,
-                        maxLines: 10,
-                      ),
-                    ],
-                  )),
+                    ),
+                    ElevatedButton(
+                      style:
+                          ElevatedButton.styleFrom(primary: Colors.blue[600]),
+                      onPressed: getImage,
+                      // 画像をカメラロールを開く
+                      child: const Text('写真を選択'),
+                    ),
+                  ],
+                ),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

@@ -1,5 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+class ReviewField {
+  static const shopName = 'shopName';
+  static const menuName = 'menuName';
+  static const comment = 'comment';
+  static const latestImageUrl = 'latestImageUrl';
+}
+
 class Review {
   Review({
     required this.shopName,
@@ -10,10 +17,10 @@ class Review {
   });
   Review.fromJson(Map<String, Object?> json)
       : this(
-          shopName: json['shopName']! as String,
-          menuName: json['menuName']! as String,
-          comment: json['comment']! as String,
-          latestImageUrl: json['latestImageUrl'] as String?,
+          shopName: json[ReviewField.shopName]! as String,
+          menuName: json[ReviewField.menuName]! as String,
+          comment: json[ReviewField.comment]! as String,
+          latestImageUrl: json[ReviewField.latestImageUrl] as String?,
         );
 
   final String shopName;
@@ -23,10 +30,10 @@ class Review {
 
   Map<String, Object?> toJson() {
     return {
-      'shopName': shopName,
-      'menuName': menuName,
-      'comment': comment,
-      'latestImageUrl': latestImageUrl,
+      ReviewField.shopName: shopName,
+      ReviewField.menuName: menuName,
+      ReviewField.comment: comment,
+      ReviewField.latestImageUrl: latestImageUrl,
     };
   }
 }
