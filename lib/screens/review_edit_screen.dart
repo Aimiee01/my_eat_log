@@ -56,7 +56,6 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
     super.initState();
     final review = widget.reviewDoc.data();
 
-    // 2通りの書き方がある
     _shopNameController.value =
         _shopNameController.value.copyWith(text: review.shopName);
     _menuNameController.text = review.menuName;
@@ -86,8 +85,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
               }
               final snapshot = asyncValue.data!;
               // 写真の表示をしたい場合は以下を使う
-              snapshot.docs;
-              final imagesDoc = snapshot.docs.last.id;
+              snapshot.docs.first;
+
               return Padding(
                 padding: const EdgeInsets.all(15),
                 child: SingleChildScrollView(
@@ -95,11 +94,11 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // todo カメラロールで選択された写真を優先する
+                      // カメラロールで選択された写真を優先する
                       if (_imageFile != null)
                         Image.file(_imageFile!)
-                      else if (imagesDoc != null)
-                        Image.network(imagesDoc)
+                      else if (snapshot.docs.first.data() != null)
+                        Image.network(snapshot.docs.first.data().storageUrl)
                       else
                         // 何も選ばれなければIconを表示
                         const Icon(Icons.image_outlined),
@@ -222,22 +221,18 @@ class _ItemUpdateButtonState extends State<_ItemUpdateButton> {
         storageUrl = await imageRef.getDownloadURL();
       }
       await reviewsRef.doc(widget.reviewDoc.id).update({
-        'shopName': widget.shopNameController.text,
-        'menuName': widget.menuNameController.text,
-        'comment': widget.commentController.text,
-        // imagePath imageUrlがあればアップデート
-        if (storagePath != null) 'imagePath': storagePath,
-        if (storageUrl != null) 'imageUrl': storageUrl,
+        ReviewField.shopName: widget.shopNameController.text,
+        ReviewField.menuName: widget.menuNameController.text,
+        ReviewField.comment: widget.commentController.text,
+        if (storageUrl != null) ReviewField.latestImageUrl: storageUrl,
         // サーバーの時刻を保存
-        'updatedAt': FieldValue.serverTimestamp(),
+        // 'updatedAt': FieldValue.serverTimestamp(),
       }
           // imagePathにはファイル名を指定する
           ).then((value) => ScaffoldMessenger.of(
               context)
           .showSnackBar(const SnackBar(content: Text('更新されました'))));
     }
-    // if (globalKey.currentState!.validate()) {
-    //   return reviewsRef.doc(reviewDoc.id).
 
     return ElevatedButton(
       onPressed: () async {
