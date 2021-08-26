@@ -4,9 +4,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:my_eat_log/firebase/review.dart';
-import 'package:my_eat_log/firebase/review_image.dart';
-import 'item_delete_button.dart';
+import 'package:my_eat_log/domain/review/entities/review.dart';
+import 'package:my_eat_log/domain/review/entities/review_image.dart';
 
 class ReviewEditScreen extends StatefulWidget {
   const ReviewEditScreen({
@@ -201,7 +200,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                           _imageFile,
                         ),
                       ),
-                      ItemDeleteButton(widget.reviewDoc),
+                      _ItemDeleteButton(widget.reviewDoc),
                     ],
                   ),
                 ),
@@ -290,6 +289,49 @@ class _ItemUpdateButton extends StatelessWidget {
           primary: Colors.blue, onPrimary: Colors.white),
       child: const Text(
         '更新',
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      ),
+    );
+  }
+}
+
+class _ItemDeleteButton extends StatelessWidget {
+  const _ItemDeleteButton(this.reviewDoc, {Key? key}) : super(key: key);
+  final QueryDocumentSnapshot<Review> reviewDoc;
+
+  @override
+  Widget build(BuildContext context) {
+    Future<void> deleteReview(BuildContext context) async {
+      await reviewsRef.doc(reviewDoc.id).delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('削除されました'),
+        ),
+      );
+    }
+
+    return ElevatedButton(
+      onPressed: () => showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('削除してもいいですか？'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context, 'キャンセル'),
+                child: const Text('キャンセル')),
+            TextButton(
+                onPressed: () async {
+                  await deleteReview(context);
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                child: const Text('OK')),
+          ],
+        ),
+      ),
+      style: ElevatedButton.styleFrom(
+          primary: Colors.redAccent, onPrimary: Colors.white),
+      child: const Text(
+        '削除',
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
       ),
     );

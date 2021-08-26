@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:my_eat_log/firebase/review.dart';
+
+import 'review.dart';
 
 class ReviewImageField {
   static const storagePath = 'storagePath';
