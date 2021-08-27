@@ -18,4 +18,11 @@ class ReviewRepository {
   }) async {
     await reviewsRef.doc(reviewId).set(data);
   }
+
+  Future<void> update(
+    Review data, {
+    required String reviewId,
+  }) async {
+    await reviewsRef.doc(reviewId).set(data);
+  }
 }

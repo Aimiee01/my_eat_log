@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
@@ -78,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // imageUrlがあれば表示
                   leading: latestImageUrl == null
                       ? const Icon(Icons.image_outlined)
-                      : Image.network(latestImageUrl),
+                      : CachedNetworkImage(imageUrl: latestImageUrl),
                   title: Text(review.shopName),
                   subtitle: Text(review.menuName),
 

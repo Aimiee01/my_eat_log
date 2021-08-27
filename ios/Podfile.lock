@@ -1,9 +1,4 @@
 PODS:
-  - BSGridCollectionViewLayout (1.2.5)
-  - BSImagePicker (2.10.3):
-    - BSGridCollectionViewLayout (= 1.2.5)
-    - BSImageView (= 1.0.3)
-  - BSImageView (1.0.3)
   - cloud_firestore (2.4.0):
     - Firebase/Firestore (= 8.3.0)
     - firebase_core
@@ -44,6 +39,9 @@ PODS:
     - FirebaseCore (~> 8.0)
     - GTMSessionFetcher/Core (~> 1.5)
   - Flutter (1.0.0)
+  - FMDB (2.7.5):
+    - FMDB/standard (= 2.7.5)
+  - FMDB/standard (2.7.5)
   - GoogleDataTransport (9.1.0):
     - GoogleUtilities/Environment (~> 7.2)
     - nanopb (~> 2.30908.0)
@@ -55,15 +53,17 @@ PODS:
   - GTMSessionFetcher/Core (1.6.1)
   - image_picker (0.0.1):
     - Flutter
-  - multi_image_picker (4.8.00):
-    - BSImagePicker (~> 2.10.3)
-    - Flutter
   - nanopb (2.30908.0):
     - nanopb/decode (= 2.30908.0)
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
+  - path_provider (0.0.1):
+    - Flutter
   - PromisesObjC (2.0.0)
+  - sqflite (0.0.2):
+    - Flutter
+    - FMDB (>= 2.7.5)
 
 DEPENDENCIES:
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
@@ -72,17 +72,16 @@ DEPENDENCIES:
   - FirebaseFirestore (from `https://github.com/invertase/firestore-ios-sdk-frameworks.git`, tag `8.3.0`)
   - Flutter (from `Flutter`)
   - image_picker (from `.symlinks/plugins/image_picker/ios`)
-  - multi_image_picker (from `.symlinks/plugins/multi_image_picker/ios`)
+  - path_provider (from `.symlinks/plugins/path_provider/ios`)
+  - sqflite (from `.symlinks/plugins/sqflite/ios`)
 
 SPEC REPOS:
   trunk:
-    - BSGridCollectionViewLayout
-    - BSImagePicker
-    - BSImageView
     - Firebase
     - FirebaseCore
     - FirebaseCoreDiagnostics
     - FirebaseStorage
+    - FMDB
     - GoogleDataTransport
     - GoogleUtilities
     - GTMSessionFetcher
@@ -103,8 +102,10 @@ EXTERNAL SOURCES:
     :path: Flutter
   image_picker:
     :path: ".symlinks/plugins/image_picker/ios"
-  multi_image_picker:
-    :path: ".symlinks/plugins/multi_image_picker/ios"
+  path_provider:
+    :path: ".symlinks/plugins/path_provider/ios"
+  sqflite:
+    :path: ".symlinks/plugins/sqflite/ios"
 
 CHECKOUT OPTIONS:
   FirebaseFirestore:
@@ -112,9 +113,6 @@ CHECKOUT OPTIONS:
     :tag: 8.3.0
 
 SPEC CHECKSUMS:
-  BSGridCollectionViewLayout: 333dcb457a5a3bdd9212607ab5756553dcfe06cb
-  BSImagePicker: 07404254f2fcdaf5a2eb403c0f8c337267ce8738
-  BSImageView: a149459433a2687157d034c78e059d30ac7f2544
   cloud_firestore: d6c77e2b33f00576fed2b070fec1be58d7e5f276
   Firebase: 817b9171d0d51dccc458b94a5e8edff6b1dd323d
   firebase_core: 72374607c8c6f5a0adc0559e5c5bf57deda975e3
@@ -124,13 +122,15 @@ SPEC CHECKSUMS:
   FirebaseFirestore: 190fe35f122c058493884e066acc233283519150
   FirebaseStorage: ff380720c204593d98c3e5482e62ccfbb522f0c5
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+  FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   GoogleDataTransport: 85fd18ff3019bb85d3f2c551d04c481dedf71fc9
   GoogleUtilities: eea970f4a389963963bffe8d8fabe43540678b9c
   GTMSessionFetcher: 36689134877faeb055b27dfa4ccc9ceaa42e029e
   image_picker: e06f7a68f000bd36f552c1847e33cda96ed31f1f
-  multi_image_picker: 443e776a762d7901641854043b60abf88a85d5ef
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
+  path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   PromisesObjC: 68159ce6952d93e17b2dfe273b8c40907db5ba58
+  sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
 
 PODFILE CHECKSUM: 29f0b12bf78bd89307ab2aa4b0174d5aa2997653
 

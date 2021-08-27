@@ -17,9 +17,9 @@ class ReviewImage {
   ReviewImage.fromJson(Map<String, Object?> json)
       : this(
           // 必ずあるので「!」をつける
-          storagePath: json['storagePath']! as String,
-          storageUrl: json['storageUrl']! as String,
-          updatedAt: json['updatedAt']! as Timestamp,
+          storagePath: json[ReviewImageField.storagePath]! as String,
+          storageUrl: json[ReviewImageField.storageUrl]! as String,
+          updatedAt: json[ReviewImageField.updatedAt]! as Timestamp,
         );
 
   final String storagePath;
@@ -28,9 +28,9 @@ class ReviewImage {
 
   Map<String, Object?> toJson() {
     return {
-      'storagePath': storagePath,
-      'storageUrl': storageUrl,
-      'updatedAt': updatedAt,
+      ReviewImageField.storagePath: storagePath,
+      ReviewImageField.storageUrl: storageUrl,
+      ReviewImageField.updatedAt: updatedAt,
     };
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 import 'package:my_eat_log/domain/review/entities/review_image.dart';
+import 'package:my_eat_log/domain/review/review_repository.dart';
 
 class ReviewEditScreen extends StatefulWidget {
   const ReviewEditScreen({
@@ -56,6 +58,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   @override
   void initState() {
     super.initState();
+    // ドキュメントのデータを代入
     final review = widget.reviewDoc.data();
 
     _shopNameController.value =
@@ -81,131 +84,157 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
       body: SafeArea(
         // FutureBuilderを使ってreviewImageのdocumentを入れる
         child: FutureBuilder<QuerySnapshot<ReviewImage>>(
-            future: reviewImageFuture,
-            builder: (context, asyncValue) {
-              // 写真がなければ空白を表示
-              if (!asyncValue.hasData || asyncValue.hasError) {
-                return const SizedBox();
-              }
-              final snapshot = asyncValue.data!;
-              // 以下を使って写真を表示
-              return Padding(
-                padding: const EdgeInsets.all(15),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Form(
-                        key: _formKey,
-                        child: Column(
+          future: reviewImageFuture,
+          builder: (context, asyncValue) {
+            // 写真がなければ空白を表示
+            if (!asyncValue.hasData || asyncValue.hasError) {
+              return const SizedBox();
+            }
+            final snapshot = asyncValue.data!;
+            return Padding(
+              padding: const EdgeInsets.all(15),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 4),
+                          TextFormField(
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'お店の名前を入力してください';
+                              }
+                              return null;
+                            },
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.food_bank_outlined),
+                              border: OutlineInputBorder(),
+                              labelText: 'お店の名前 *',
+                            ),
+                            controller: _shopNameController,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: TextFormField(
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return '品名を入力してください';
+                                }
+                                return null;
+                              },
+                              decoration: const InputDecoration(
+                                icon: Icon(Icons.fastfood),
+                                border: OutlineInputBorder(),
+                                labelText: '商品名 *',
+                              ),
+                              controller: _menuNameController,
+                            ),
+                          ),
+                          TextFormField(
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return '感想を入力してください';
+                              }
+                              return null;
+                            },
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.comment),
+                              border: OutlineInputBorder(),
+                              labelText: '感想 *',
+                            ),
+                            controller: _commentController,
+                            minLines: 4,
+                            maxLines: 8,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    // カメラロールから写真が選択されたら、GridViewの表示が更新される
+                    if (_imageFile != null)
+                      SizedBox(
+                        height: 160,
+                        child: GridView.count(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          // アスペクト比を設定すると意図しない余白がなくなる
+                          childAspectRatio: 350 / 250,
                           children: [
-                            const SizedBox(height: 4),
-                            TextFormField(
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'お店の名前を入力してください';
-                                }
-                                return null;
-                              },
-                              decoration: const InputDecoration(
-                                icon: Icon(Icons.food_bank_outlined),
-                                border: OutlineInputBorder(),
-                                labelText: 'お店の名前 *',
-                              ),
-                              controller: _shopNameController,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 30),
-                              child: TextFormField(
-                                autovalidateMode:
-                                    AutovalidateMode.onUserInteraction,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return '品名を入力してください';
-                                  }
-                                  return null;
-                                },
-                                decoration: const InputDecoration(
-                                  icon: Icon(Icons.fastfood),
-                                  border: OutlineInputBorder(),
-                                  labelText: '商品名 *',
-                                ),
-                                controller: _menuNameController,
-                              ),
-                            ),
-                            TextFormField(
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return '感想を入力してください';
-                                }
-                                return null;
-                              },
-                              decoration: const InputDecoration(
-                                icon: Icon(Icons.comment),
-                                border: OutlineInputBorder(),
-                                labelText: '感想 *',
-                              ),
-                              controller: _commentController,
-                              minLines: 4,
-                              maxLines: 8,
-                            ),
+                            for (final doc in snapshot.docs)
+                              // 全ドキュメントのstorageUrlを取得
+                              CachedNetworkImage(
+                                  imageUrl: doc.data().storageUrl),
+                            Image.file(_imageFile!),
                           ],
                         ),
-                      ),
-                      // カメラロールで選択された写真を優先する
-                      if (_imageFile != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: SizedBox(
-                              width: 200, child: Image.file(_imageFile!)),
-                        )
+                      )
+                    // SizedBox(
+                    //   width: 200,
+                    //   child: Image.file(_imageFile!),
+                    // )
 
-                      /// isNotEmptyを使って画像がある時はそれを表示する処理
-                      else if (snapshot.docs.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: SizedBox(
-                              width: 200,
-                              child: Image.network(
-                                  snapshot.docs.last.data().storageUrl)),
-                        )
-                      else
-                        // 何も選ばれなければIconを表示
-                        const Icon(Icons.image_outlined),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              onPrimary: Colors.blue[600],
-                              primary: Colors.blue[100]),
-                          onPressed: getImage,
-                          // 画像をカメラロールを開く
-                          child: const Text('写真を選択'),
+                    /// isNotEmptyを使って画像がある時はそれを表示する処理
+                    else if (snapshot.docs.isNotEmpty)
+                      SizedBox(
+                        height: 160,
+                        child: GridView.count(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          // 写真のアスペクト比を設定
+                          childAspectRatio: 350 / 250,
+                          children: [
+                            for (final doc in snapshot.docs)
+                              // 全ドキュメントのstorageUrlを取得
+                              CachedNetworkImage(
+                                  imageUrl: doc.data().storageUrl),
+                          ],
                         ),
+                      )
+                    else
+                      // 何も選ばれなければIconを表示
+                      const Icon(Icons.image_outlined),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            onPrimary: Colors.blue[600],
+                            primary: Colors.blue[100]),
+                        onPressed: getImage,
+                        // 画像をカメラロールを開く
+                        child: const Text('写真を選択'),
                       ),
+                    ),
 
-                      Padding(
-                        padding: const EdgeInsets.only(top: 30),
-                        child: _ItemUpdateButton(
-                          _shopNameController,
-                          _menuNameController,
-                          _commentController,
-                          _formKey,
-                          widget.reviewDoc,
-                          _imageFile,
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 30),
+                      child: _ItemUpdateButton(
+                        _shopNameController,
+                        _menuNameController,
+                        _commentController,
+                        _formKey,
+                        widget.reviewDoc,
+                        _imageFile,
                       ),
-                      _ItemDeleteButton(widget.reviewDoc),
-                    ],
-                  ),
+                    ),
+                    _ItemDeleteButton(widget.reviewDoc),
+                  ],
                 ),
-              );
-            }),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -262,7 +291,8 @@ class _ItemUpdateButton extends StatelessWidget {
           updatedAt: Timestamp.now(),
         );
       }
-      await reviewsRef.doc(reviewDoc.id).update({
+      final reviewId = reviewDoc.id;
+      await reviewsRef.doc(reviewId).update({
         ReviewField.shopName: shopNameController.text,
         ReviewField.menuName: menuNameController.text,
         ReviewField.comment: commentController.text,
