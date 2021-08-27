@@ -19,10 +19,21 @@ class ReviewRepository {
     await reviewsRef.doc(reviewId).set(data);
   }
 
+  ///
   Future<void> update(
-    Review data, {
+    String shopName,
+    String menuName,
+    String comment,
+    String? storageUrl, {
     required String reviewId,
   }) async {
-    await reviewsRef.doc(reviewId).set(data);
+    await reviewsRef.doc(reviewId).update(
+      {
+        ReviewField.shopName: shopName,
+        ReviewField.menuName: menuName,
+        ReviewField.comment: comment,
+        if (storageUrl != null) ReviewField.latestImageUrl: storageUrl,
+      },
+    );
   }
 }

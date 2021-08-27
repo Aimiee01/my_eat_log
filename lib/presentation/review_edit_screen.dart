@@ -164,26 +164,40 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                     ),
                     // カメラロールから写真が選択されたら、GridViewの表示が更新される
                     if (_imageFile != null)
-                      SizedBox(
-                        height: 160,
-                        child: GridView.count(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 10,
-                          // アスペクト比を設定すると意図しない余白がなくなる
-                          childAspectRatio: 350 / 250,
-                          children: [
-                            for (final doc in snapshot.docs)
-                              // 全ドキュメントのstorageUrlを取得
-                              CachedNetworkImage(
-                                  imageUrl: doc.data().storageUrl),
-                            Image.file(_imageFile!),
-                          ],
-                        ),
+                      Column(
+                        children: [
+                          SizedBox(
+                            height: 80,
+                            child: Scrollbar(
+                              child: GridView.count(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 10,
+                                // アスペクト比を設定すると意図しない余白がなくなる
+                                childAspectRatio: 350 / 250,
+                                children: [
+                                  for (final doc in snapshot.docs)
+                                    // 全ドキュメントのstorageUrlを取得
+                                    CachedNetworkImage(
+                                        imageUrl: doc.data().storageUrl),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Text(
+                              '新しく追加する写真',
+                              style: TextStyle(
+                                  color: Colors.lightBlue,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 80,
+                            child: Image.file(_imageFile!),
+                          )
+                        ],
                       )
-                    // SizedBox(
-                    //   width: 200,
-                    //   child: Image.file(_imageFile!),
-                    // )
 
                     /// isNotEmptyを使って画像がある時はそれを表示する処理
                     else if (snapshot.docs.isNotEmpty)
@@ -206,11 +220,12 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                       // 何も選ばれなければIconを表示
                       const Icon(Icons.image_outlined),
                     Padding(
-                      padding: const EdgeInsets.only(top: 20),
+                      padding: const EdgeInsets.only(top: 10),
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                            onPrimary: Colors.blue[600],
-                            primary: Colors.blue[100]),
+                          onPrimary: Colors.blue[600],
+                          primary: Colors.blue[100],
+                        ),
                         onPressed: getImage,
                         // 画像をカメラロールを開く
                         child: const Text('写真を選択'),
@@ -218,7 +233,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                     ),
 
                     Padding(
-                      padding: const EdgeInsets.only(top: 30),
+                      padding: const EdgeInsets.only(top: 10),
                       child: _ItemUpdateButton(
                         _shopNameController,
                         _menuNameController,
@@ -291,19 +306,18 @@ class _ItemUpdateButton extends StatelessWidget {
           updatedAt: Timestamp.now(),
         );
       }
-      final reviewId = reviewDoc.id;
-      await reviewsRef.doc(reviewId).update({
-        ReviewField.shopName: shopNameController.text,
-        ReviewField.menuName: menuNameController.text,
-        ReviewField.comment: commentController.text,
-        if (storageUrl != null) ReviewField.latestImageUrl: storageUrl,
-        // todo サーバーの時刻を保存
-        // 'updatedAt': FieldValue.serverTimestamp(),
-      }
-          // imagePathにはファイル名を指定する
-          ).then((value) => ScaffoldMessenger.of(
-              context)
-          .showSnackBar(const SnackBar(content: Text('更新されました'))));
+
+      await ReviewRepository.instance.update(shopNameController.text,
+          menuNameController.text, commentController.text, storageUrl,
+          reviewId: reviewDoc.id);
+      // todo サーバーの時刻を保存
+      // 'updatedAt': FieldValue.serverTimestamp(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('登録されました'),
+        ),
+      );
+      // imagePathにはファイル名を指定する
       if (reviewImage == null) {
         return;
       }

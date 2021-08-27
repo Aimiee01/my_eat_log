@@ -79,7 +79,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   // imageUrlがあれば表示
                   leading: latestImageUrl == null
                       ? const Icon(Icons.image_outlined)
-                      : CachedNetworkImage(imageUrl: latestImageUrl),
+                      // : Image.network(latestImageUrl),
+                      : CachedNetworkImage(
+                          width: 80,
+                          imageUrl: latestImageUrl,
+                        ),
                   title: Text(review.shopName),
                   subtitle: Text(review.menuName),
 
