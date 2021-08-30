@@ -3,21 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>496075664309-rveb7ig7niu7l1c7fdv9d9alhih13ajm.apps.googleusercontent.com</string>
+	<string>951244714980-hbf97o4624kgb83at97su33s6lneo60k.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.496075664309-rveb7ig7niu7l1c7fdv9d9alhih13ajm</string>
+	<string>com.googleusercontent.apps.951244714980-hbf97o4624kgb83at97su33s6lneo60k</string>
 	<key>API_KEY</key>
-	<string>AIzaSyDPyTfDk0yPgEYejcLv2kbGnc0Bec1KfOU</string>
+	<string>AIzaSyBHQabc-UEaGO_-GPqG4tjydAgM1mRA6ms</string>
 	<key>GCM_SENDER_ID</key>
-	<string>496075664309</string>
+	<string>951244714980</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>jp.co.altive.aimiee.myEatLog</string>
 	<key>PROJECT_ID</key>
-	<string>myeatlog-84370</string>
+	<string>myeatlog-8ad43</string>
 	<key>STORAGE_BUCKET</key>
-	<string>myeatlog-84370.appspot.com</string>
+	<string>myeatlog-8ad43.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:496075664309:ios:e6b909d98faace6e9e47fc</string>
+	<string>1:951244714980:ios:87f030dd7ac2fa77f74df1</string>
 </dict>
 </plist>

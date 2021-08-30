@@ -3,32 +3,32 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>496075664309-rveb7ig7niu7l1c7fdv9d9alhih13ajm.apps.googleusercontent.com</string>
+	<string>951244714980-t84017pq9v0jcqo9ek39jh9r18pqembv.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.496075664309-rveb7ig7niu7l1c7fdv9d9alhih13ajm</string>
+	<string>com.googleusercontent.apps.951244714980-t84017pq9v0jcqo9ek39jh9r18pqembv</string>
 	<key>API_KEY</key>
-	<string>AIzaSyDPyTfDk0yPgEYejcLv2kbGnc0Bec1KfOU</string>
+	<string>AIzaSyBHQabc-UEaGO_-GPqG4tjydAgM1mRA6ms</string>
 	<key>GCM_SENDER_ID</key>
-	<string>496075664309</string>
+	<string>951244714980</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>jp.co.altive.aimiee.myEatLog</string>
+	<string>a.muramatsu-altive.co.jp.myEatlog</string>
 	<key>PROJECT_ID</key>
-	<string>myeatlog-84370</string>
+	<string>myeatlog-8ad43</string>
 	<key>STORAGE_BUCKET</key>
-	<string>myeatlog-84370.appspot.com</string>
+	<string>myeatlog-8ad43.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_GCM_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:496075664309:ios:e6b909d98faace6e9e47fc</string>
+	<string>1:951244714980:ios:7d0497216ca899f4f74df1</string>
 </dict>
 </plist>

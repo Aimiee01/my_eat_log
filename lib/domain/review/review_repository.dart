@@ -11,7 +11,7 @@ class ReviewRepository {
     return reviewsRef.snapshots();
   }
 
-  /// レビュー[review]を一件、ドキュメントID[reviewId]を指定して新規追加する。
+  /// reviewを一件、ドキュメントID[reviewId]を指定して新規追加する。
   Future<void> add(
     Review data, {
     required String reviewId,

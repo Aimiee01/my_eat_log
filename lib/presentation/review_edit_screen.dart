@@ -28,8 +28,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   final _shopNameController = TextEditingController();
   final _menuNameController = TextEditingController();
   late TextEditingController _commentController;
-  // 初期値は空なので？（lateは使えない）
-  File? _imageFile;
+  // 初期値は空 リストなので各かっこ
+  final List<File> _imageFileList = [];
 
   late Future<QuerySnapshot<ReviewImage>> reviewImageFuture;
 
@@ -39,19 +39,32 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   //   final img = Image(image: CacheNetworkImageProvider(url));
   // }
 
-  /// ユーザーが写真ギャラリーから写真を選択する
-  /// 写真が選ばれたら [_imageFile] に [File] が入る
-  /// キャンセルされた場合は何もしない
-  Future<void> getImage() async {
-    // 修正してもらった部分
+  Future<void> getImageFromCamera() async {
     final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+        await ImagePicker().pickImage(source: ImageSource.camera);
     if (pickedFile == null) {
       return;
     }
     setState(() {
-      /// ImagePickerで選択された画像
-      _imageFile = File(pickedFile.path);
+      _imageFileList.add(File(pickedFile.path));
+    });
+  }
+
+  /// ユーザーが写真ギャラリーから写真を選択する
+  /// 写真が選ばれたら [_imageFileList] に [File] が入る
+  /// キャンセルされた場合は何もしない
+  Future<void> getImage() async {
+    // 修正してもらった部分
+    final pickedFiles =
+        // await ImagePicker().pickImage(source: ImageSource.gallery);
+        await ImagePicker().pickMultiImage();
+    if (pickedFiles == null || pickedFiles.isEmpty) {
+      return;
+    }
+    setState(() {
+      /// ImagePickerで選択された複数枚の写真
+      final files = pickedFiles.map((pickedFile) => File(pickedFile.path));
+      _imageFileList.addAll(files);
     });
   }
 
@@ -163,7 +176,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                       height: 30,
                     ),
                     // カメラロールから写真が選択されたら、GridViewの表示が更新される
-                    if (_imageFile != null)
+                    if (_imageFileList.isNotEmpty)
                       Column(
                         children: [
                           SizedBox(
@@ -193,13 +206,22 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                             ),
                           ),
                           SizedBox(
-                            height: 80,
-                            child: Image.file(_imageFile!),
-                          )
+                            height: 160,
+                            child: GridView.count(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 10,
+                              // 写真のアスペクト比を設定
+                              childAspectRatio: 350 / 250,
+                              children: [
+                                for (final imageFile in _imageFileList)
+                                  Image.file(imageFile),
+                              ],
+                            ),
+                          ),
                         ],
                       )
 
-                    /// isNotEmptyを使って画像がある時はそれを表示する処理
+                    /// isNotEmptyを使って写真がある時はそれを表示する処理
                     else if (snapshot.docs.isNotEmpty)
                       SizedBox(
                         height: 160,
@@ -219,17 +241,27 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                     else
                       // 何も選ばれなければIconを表示
                       const Icon(Icons.image_outlined),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          onPrimary: Colors.blue[600],
-                          primary: Colors.blue[100],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              primary: Colors.blue[600]),
+                          onPressed: getImage,
+                          // カメラロールを開く
+                          child: const Text('写真を選択'),
                         ),
-                        onPressed: getImage,
-                        // 画像をカメラロールを開く
-                        child: const Text('写真を選択'),
-                      ),
+                        const SizedBox(width: 50),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            onPrimary: Colors.blue[600],
+                            primary: Colors.blue[100],
+                          ),
+                          onPressed: getImageFromCamera,
+                          // カメラを起動
+                          child: const Text('写真を撮影'),
+                        ),
+                      ],
                     ),
 
                     Padding(
@@ -240,7 +272,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                         _commentController,
                         _formKey,
                         widget.reviewDoc,
-                        _imageFile,
+                        _imageFileList,
                       ),
                     ),
                     _ItemDeleteButton(widget.reviewDoc),
@@ -262,7 +294,7 @@ class _ItemUpdateButton extends StatelessWidget {
     this.commentController,
     this.globalKey,
     this.reviewDoc,
-    this.imageFile, {
+    this.imageFileList, {
     Key? key,
   }) : super(key: key);
 
@@ -273,7 +305,7 @@ class _ItemUpdateButton extends StatelessWidget {
   final GlobalKey<FormState> globalKey;
   final QueryDocumentSnapshot<Review> reviewDoc;
 
-  File? imageFile;
+  List<File> imageFileList = [];
 
   @override
   Widget build(BuildContext context) {
@@ -289,17 +321,20 @@ class _ItemUpdateButton extends StatelessWidget {
       ReviewImage? reviewImage;
       String? storageUrl;
       String? storagePath;
-      // 画像が選択されていればfirebase Storageに保存する
-      if (imageFile != null) {
-        // timestampは画像がある時にしか使わないのでこの場所に書く
+      // 写真が選択されていればfirebase Storageに保存する
+      if (imageFileList.isNotEmpty) {
+        // timestampは写真がある時にしか使わないのでこの場所に書く
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         storagePath = 'user-id/menu-images/upload-pic-$timestamp.png';
         final imageRef = FirebaseStorage.instance.ref(storagePath);
-        // Storageに画像を保存
-        await imageRef.putFile(imageFile!);
-        // 保存した画像のURLを取得して、あらかじめ用意していた変数に入れる
+        // Storageに複数枚の写真を保存
+        for (final image in imageFileList) {
+          await imageRef.putFile(image);
+        }
+
+        // 保存した写真のURLを取得して、あらかじめ用意していた変数に入れる
         storageUrl = await imageRef.getDownloadURL();
-        // 追加する画像のクラスを作成
+        // 追加する写真のクラスを作成
         reviewImage = ReviewImage(
           storagePath: storagePath,
           storageUrl: storageUrl,

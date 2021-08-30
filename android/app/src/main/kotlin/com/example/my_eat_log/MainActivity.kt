@@ -1,4 +1,4 @@
-package com.example.my_eat_log
+package jp.co.altive.aimiee.my_eat_log
 
 import io.flutter.embedding.android.FlutterActivity
 
