@@ -33,27 +33,10 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
 
   late Future<QuerySnapshot<ReviewImage>> reviewImageFuture;
 
-  // Future<void> downloadFile(String imagePath) async {
-  //   final imageurl = widget.storage.ref().child('images/$imagePath');
-  //   final String url = await ref.getDownloadURL();
-  //   final img = Image(image: CacheNetworkImageProvider(url));
-  // }
-
-  Future<void> getImageFromCamera() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.camera);
-    if (pickedFile == null) {
-      return;
-    }
-    setState(() {
-      _imageFileList.add(File(pickedFile.path));
-    });
-  }
-
   /// ユーザーが写真ギャラリーから写真を選択する
   /// 写真が選ばれたら [_imageFileList] に [File] が入る
   /// キャンセルされた場合は何もしない
-  Future<void> getImage() async {
+  Future<void> onAddImageButtonPressed() async {
     // 修正してもらった部分
     final pickedFiles =
         // await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -65,6 +48,17 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
       /// ImagePickerで選択された複数枚の写真
       final files = pickedFiles.map((pickedFile) => File(pickedFile.path));
       _imageFileList.addAll(files);
+    });
+  }
+
+  Future<void> getImageFromCamera() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.camera);
+    if (pickedFile == null) {
+      return;
+    }
+    setState(() {
+      _imageFileList.add(File(pickedFile.path));
     });
   }
 
@@ -247,7 +241,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                               primary: Colors.blue[600]),
-                          onPressed: getImage,
+                          onPressed: onAddImageButtonPressed,
                           // カメラロールを開く
                           child: const Text('写真を選択'),
                         ),

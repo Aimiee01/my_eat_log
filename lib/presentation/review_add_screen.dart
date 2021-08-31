@@ -23,20 +23,23 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
   final _shopNameController = TextEditingController();
   final _menuNameController = TextEditingController();
   final _commentController = TextEditingController();
+  final List<File> _imageFileList = [];
 
   /// ユーザーが選択したデバイスの写真ファイル
   File? imageFile;
 
   /// ユーザーが写真を選択する
   Future<void> onAddImageButtonPressed() async {
-    // 修正してもらった部分
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile == null) {
+    final pickedFiles =
+        // await ImagePicker().pickImage(source: ImageSource.gallery);
+        await ImagePicker().pickMultiImage();
+    if (pickedFiles == null || pickedFiles.isEmpty) {
       return;
     }
     setState(() {
-      imageFile = File(pickedFile.path);
+      /// ImagePickerで選択された複数枚の写真
+      final files = pickedFiles.map((pickedFile) => File(pickedFile.path));
+      _imageFileList.addAll(files);
     });
   }
 
@@ -128,17 +131,32 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
                         minLines: 6,
                         maxLines: 10,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        child: SizedBox(
-                          width: 200,
-                          child: Container(
-                            child: imageFile == null
-                                ? const Center(child: Text('写真を選択してください'))
-                                : Image.file(imageFile!),
+                      if (_imageFileList.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: SizedBox(
+                            height: 160,
+                            child: GridView.builder(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 6,
+                                crossAxisSpacing: 6,
+                              ),
+                              itemCount: _imageFileList.length,
+                              itemBuilder: (context, index) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _imageFileList.removeAt(index);
+                                    });
+                                  },
+                                  child: Image.file(_imageFileList[index]),
+                                );
+                              },
+                            ),
                           ),
                         ),
-                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -179,7 +197,7 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
                   _menuNameController,
                   _commentController,
                   _formKey,
-                  imageFile,
+                  _imageFileList,
                 ),
               ],
             ),
@@ -196,7 +214,7 @@ class _ItemAddButton extends StatelessWidget {
     this.menuNameController,
     this.commentController,
     this.globalKey,
-    this.imageFile,
+    this._imageFileList,
     // ボタンを用意してからimagePickerを使う
     {
     Key? key,
@@ -204,9 +222,9 @@ class _ItemAddButton extends StatelessWidget {
   final TextEditingController shopNameController;
   final TextEditingController menuNameController;
   final TextEditingController commentController;
-  File? imageFile;
+  final List<File> _imageFileList;
 
-  // <FormState>を必ず入れる(ジェネリクス)
+  // <FormState>を必ず入れる
   final GlobalKey<FormState> globalKey;
   @override
   Widget build(BuildContext context) {
@@ -221,23 +239,19 @@ class _ItemAddButton extends StatelessWidget {
       }
       // ファイル名を秒まで入れた文字列にする
       ReviewImage? reviewImage;
-      if (imageFile != null) {
-        final imageFile = this.imageFile!;
-
+      if (_imageFileList.isNotEmpty) {
         String? storagePath;
         // timestampは画像がある時にしか使わないのでこの場所に書く
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         storagePath = 'user-id/menu-images/upload-pic-$timestamp.png';
-
-        final storageUrl = await ReviewImageRepository.instance.putImage(
-          imageFile,
+        final storageUrl = await ReviewImageRepository.instance.putImages(
+          _imageFileList,
           path: storagePath,
         );
-
         // 新しく追加する画像のクラスを作成
         reviewImage = ReviewImage(
           storagePath: storagePath,
-          storageUrl: storageUrl,
+          storageUrl: storageUrl!,
           updatedAt: Timestamp.now(),
         );
       }

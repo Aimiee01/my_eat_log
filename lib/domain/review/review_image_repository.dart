@@ -10,15 +10,17 @@ class ReviewImageRepository {
 
   FirebaseStorage get _storage => FirebaseStorage.instance;
 
-  /// [file] (写真)をストレージの指定の[path]に保存する。
+  /// [files] (写真)をストレージの指定の[path]に保存する。
   /// 写真を保存したら、URLを取得して返す。
-  Future<String> putImage(
-    File file, {
+  Future<String?> putImages(
+    List<File> files, {
     required String path,
   }) async {
-    final ref = _storage.ref(path);
-    await ref.putFile(file);
-    return ref.getDownloadURL();
+    for (final file in files) {
+      final ref = _storage.ref(path);
+      await ref.putFile(file);
+      return ref.getDownloadURL();
+    }
   }
 
   /// ReviewImage[data]を、Reviewのサブコレクションドキュメントとして保存する。
