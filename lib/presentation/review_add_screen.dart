@@ -147,10 +147,31 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
                               itemBuilder: (context, index) {
                                 return GestureDetector(
                                   onTap: () {
-                                    setState(() {
-                                      _imageFileList.removeAt(index);
-                                    });
+                                    showDialog<void>(
+                                        context: context,
+                                        builder: (_) {
+                                          return AlertDialog(
+                                            title: const Text('削除してもいいですか？'),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(context),
+                                                  child: const Text('キャンセル')),
+                                              TextButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _imageFileList
+                                                          .removeAt(index);
+                                                    });
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text('OK')),
+                                            ],
+                                          );
+                                        });
                                   },
+
+                                  // タッチ検出対象のWidget
                                   child: Image.file(_imageFileList[index]),
                                 );
                               },
@@ -209,7 +230,7 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
 }
 
 class _ItemAddButton extends StatelessWidget {
-  _ItemAddButton(
+  const _ItemAddButton(
     this.shopNameController,
     this.menuNameController,
     this.commentController,
@@ -237,35 +258,47 @@ class _ItemAddButton extends StatelessWidget {
         );
         return;
       }
-      // ファイル名を秒まで入れた文字列にする
-      ReviewImage? reviewImage;
+
+      /// reviewImagesクラスのリストを作成・型はReviewImageを指定
+      /// reviewのサブコレクションimages
+      final reviewImages = <ReviewImage>[];
       if (_imageFileList.isNotEmpty) {
         String? storagePath;
-        // timestampは画像がある時にしか使わないのでこの場所に書く
+        // timestampは写真がある時にしか使わないのでこの場所に書く
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        storagePath = 'user-id/menu-images/upload-pic-$timestamp.png';
-        final storageUrl = await ReviewImageRepository.instance.putImages(
+        // ファイル名を秒まで入れた文字列にする
+        storagePath = 'user-id/menu-images/upload-pic-$timestamp';
+        final storageUrlList = await ReviewImageRepository.instance.putImages(
           _imageFileList,
           path: storagePath,
+          pathExtension: '',
         );
-        // 新しく追加する画像のクラスを作成
-        reviewImage = ReviewImage(
-          storagePath: storagePath,
-          storageUrl: storageUrl!,
-          updatedAt: Timestamp.now(),
-        );
+        // 用意した空のリスト[reviewImages]に.addで追加する
+        // fo-inでFile(写真)の数だけReviewImageを作ってList(reviewImages)へ入れる
+        for (final storageUrl in storageUrlList) {
+          reviewImages.add(
+            ReviewImage(
+              storagePath: storagePath,
+              storageUrl: storageUrl,
+              updatedAt: Timestamp.now(),
+            ),
+          );
+        }
       }
 
       // UuidでReviewID(DocumentIDとしても使う)を生成する（packageのimportが必要）バージョンはv4を指定
       final reviewId = const Uuid().v4();
-      final storageUrl = reviewImage?.storageUrl;
       final newReview = Review(
         shopName: shopNameController.text,
         menuName: menuNameController.text,
         comment: commentController.text,
-        latestImageUrl: storageUrl,
+        latestImageUrl:
+            reviewImages.isEmpty ? null : reviewImages.last.storageUrl,
       );
-      await ReviewRepository.instance.add(newReview, reviewId: reviewId);
+      await ReviewRepository.instance.add(
+        newReview,
+        reviewId: reviewId,
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -273,11 +306,14 @@ class _ItemAddButton extends StatelessWidget {
         ),
       );
 
-      if (reviewImage != null) {
-        await ReviewImageRepository.instance.add(
-          reviewImage,
-          reviewId: reviewId,
-        );
+      // 画像を reviews/:id/images コレクションに追加する
+      if (reviewImages.isNotEmpty) {
+        for (final reviewImage in reviewImages) {
+          await ReviewImageRepository.instance.add(
+            reviewImage,
+            reviewId: reviewId,
+          );
+        }
       }
     }
 
