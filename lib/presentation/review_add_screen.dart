@@ -243,6 +243,8 @@ class _ItemAddButton extends StatelessWidget {
   final TextEditingController shopNameController;
   final TextEditingController menuNameController;
   final TextEditingController commentController;
+
+  /// カメラロールで選択された写真のリスト
   final List<File> _imageFileList;
 
   // <FormState>を必ず入れる
@@ -266,16 +268,15 @@ class _ItemAddButton extends StatelessWidget {
         String? storagePath;
         // timestampは写真がある時にしか使わないのでこの場所に書く
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        // ファイル名を秒まで入れた文字列にする
-        storagePath = 'user-id/menu-images/upload-pic-$timestamp';
-        final storageUrlList = await ReviewImageRepository.instance.putImages(
-          _imageFileList,
-          path: storagePath,
-          pathExtension: '',
-        );
-        // 用意した空のリスト[reviewImages]に.addで追加する
-        // fo-inでFile(写真)の数だけReviewImageを作ってList(reviewImages)へ入れる
-        for (final storageUrl in storageUrlList) {
+
+        // 写真の枚数だけ写真をupload→Urlを取得
+        for (var i = 0; i < _imageFileList.length; i++) {
+          // 秒まで入れたfile名を生成
+          storagePath = 'user-id/menu-images/upload-pic-$timestamp-$i.png';
+          final storageUrl = await ReviewImageRepository.instance.putImage(
+            _imageFileList[i],
+            path: storagePath,
+          );
           reviewImages.add(
             ReviewImage(
               storagePath: storagePath,

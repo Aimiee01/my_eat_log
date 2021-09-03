@@ -10,26 +10,19 @@ class ReviewImageRepository {
 
   FirebaseStorage get _storage => FirebaseStorage.instance;
 
-  /// [imageFileList] (写真)をストレージの指定の[path]に保存する。
-  /// 写真を保存したら、URLを取得して返す。
-  /// [pathExtension]はファイルの拡張子である！
-  Future<List<String>> putImages(
-    List<File> imageFileList, {
+  /// [imageFile] (写真)をストレージの指定の[path]に保存する。
+  /// 写真を保存し、URLを取得して返す。
+  Future<String> putImage(
+    File imageFile, {
     required String path,
-    String pathExtension = 'png',
   }) async {
-    final urls = <String>[];
-    // forでリストの数分回す
-    for (var i = 0; i < imageFileList.length; i++) {
-      final file = imageFileList[i];
-      final storagePath = '$path-$i.$pathExtension';
-      // 参照の作成
-      final ref = _storage.ref(storagePath);
+    // 参照の作成
+    final ref = _storage.ref(path);
+    // 写真を保存
+    await ref.putFile(imageFile);
+    final downloadUrl = _storage.ref(path).getDownloadURL();
 
-      await ref.putFile(file);
-      urls.add(await ref.getDownloadURL());
-    }
-    return urls;
+    return downloadUrl;
   }
 
   /// ReviewImage[data]を、Reviewのサブコレクションドキュメントとして保存する。
@@ -38,5 +31,11 @@ class ReviewImageRepository {
     required String reviewId,
   }) async {
     await reviewImagesRef(reviewId).add(data);
+  }
+
+  Future<void> delete({required String storagePath}) async {
+    //何番目の写真かindexを受け取る
+    final ref = _storage.ref(storagePath);
+    await ref.delete();
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 import 'package:my_eat_log/domain/review/entities/review_image.dart';
+import 'package:my_eat_log/domain/review/review_image_repository.dart';
 import 'package:my_eat_log/domain/review/review_repository.dart';
 
 class ReviewEditScreen extends StatefulWidget {
@@ -89,7 +90,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
         title: const Text('編集画面'),
       ),
       body: SafeArea(
-        // FutureBuilderを使ってreviewImageのdocumentを入れる
+        // FutureBuilderを使ってreviewのサブコレクションimagesのdocumentを入れる
         child: FutureBuilder<QuerySnapshot<ReviewImage>>(
           future: reviewImageFuture,
           builder: (context, asyncValue) {
@@ -169,72 +170,112 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                     const SizedBox(
                       height: 30,
                     ),
-                    // カメラロールから写真が選択されたら、GridViewの表示が更新される
-                    if (_imageFileList.isNotEmpty)
-                      Column(
-                        children: [
-                          SizedBox(
-                            height: 80,
-                            child: Scrollbar(
-                              child: GridView.count(
-                                crossAxisCount: 3,
-                                crossAxisSpacing: 10,
-                                // アスペクト比を設定すると意図しない余白がなくなる
-                                childAspectRatio: 350 / 250,
-                                children: [
-                                  for (final doc in snapshot.docs)
-                                    // 全ドキュメントのstorageUrlを取得
-                                    CachedNetworkImage(
-                                        imageUrl: doc.data().storageUrl),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.all(10),
-                            child: Text(
-                              '新しく追加する写真',
-                              style: TextStyle(
-                                  color: Colors.lightBlue,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 160,
-                            child: GridView.count(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 10,
-                              // 写真のアスペクト比を設定
-                              childAspectRatio: 350 / 250,
-                              children: [
-                                for (final imageFile in _imageFileList)
-                                  Image.file(imageFile),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-
-                    /// isNotEmptyを使って写真がある時はそれを表示する処理
-                    else if (snapshot.docs.isNotEmpty)
+                    // アップロード済みの写真があったら表示する
+                    if (snapshot.docs.isNotEmpty)
                       SizedBox(
                         height: 160,
-                        child: GridView.count(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 10,
-                          // 写真のアスペクト比を設定
-                          childAspectRatio: 350 / 250,
-                          children: [
-                            for (final doc in snapshot.docs)
-                              // 全ドキュメントのstorageUrlを取得
-                              CachedNetworkImage(
-                                  imageUrl: doc.data().storageUrl),
-                          ],
+                        child: GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 6,
+                            crossAxisSpacing: 6,
+                          ),
+                          itemCount: snapshot.docs.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (_) {
+                                    return AlertDialog(
+                                      title: const Text('削除してもいいですか？'),
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text('キャンセル')),
+                                        // FirebaseStorageに保存済みの写真を削除する
+                                        TextButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                ReviewImageRepository.instance
+                                                    .delete(
+                                                        storagePath: snapshot
+                                                            .docs[index]
+                                                            .data()
+                                                            .storagePath);
+                                              });
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('OK')),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              // タッチ検出対象のWidget
+                              // [CachedNetworkImage]にstorageUrlを指定して保存済みの写真を表示
+                              child: CachedNetworkImage(
+                                  imageUrl:
+                                      snapshot.docs[index].data().storageUrl),
+                            );
+                          },
                         ),
-                      )
-                    else
-                      // 何も選ばれなければIconを表示
-                      const Icon(Icons.image_outlined),
+                      ),
+
+                    /// ifで写真が選ばれていたら表示する処理
+                    /// ...スプレッド演算子を使ってtrueのとき表示したいWidgetを囲む
+                    if (_imageFileList.isNotEmpty) ...[
+                      const Text(
+                        '新しく追加する写真',
+                        style: TextStyle(
+                            color: Colors.lightBlue,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        height: 160,
+                        child: GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 6,
+                            crossAxisSpacing: 6,
+                          ),
+                          itemCount: _imageFileList.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                showDialog<void>(
+                                    context: context,
+                                    builder: (_) {
+                                      return AlertDialog(
+                                        title: const Text('削除してもいいですか？'),
+                                        actions: [
+                                          TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: const Text('キャンセル')),
+                                          TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _imageFileList
+                                                      .removeAt(index);
+                                                });
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text('OK')),
+                                        ],
+                                      );
+                                    });
+                              },
+                              // タッチ検出対象のWidget
+                              child: Image.file(_imageFileList[index]),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
