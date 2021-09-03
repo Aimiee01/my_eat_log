@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -82,9 +81,6 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   @override
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-
-    // コメントを更新したいとき（reference は参照）
-    // widget.reviewDoc.reference.update({'comment': ''});
     return Scaffold(
       appBar: AppBar(
         title: const Text('編集画面'),
@@ -204,7 +200,11 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                                                         storagePath: snapshot
                                                             .docs[index]
                                                             .data()
-                                                            .storagePath);
+                                                            .storagePath,
+                                                        imageDocId: snapshot
+                                                            .docs[index].id,
+                                                        reviewId: widget
+                                                            .reviewDoc.id);
                                               });
                                               Navigator.pop(context);
                                             },
@@ -353,45 +353,55 @@ class _ItemUpdateButton extends StatelessWidget {
       }
 
       /// レビューを更新する
-      ReviewImage? reviewImage;
+      final reviewImages = <ReviewImage>[];
       String? storageUrl;
-      String? storagePath;
       // 写真が選択されていればfirebase Storageに保存する
       if (imageFileList.isNotEmpty) {
+        String? storagePath;
         // timestampは写真がある時にしか使わないのでこの場所に書く
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        storagePath = 'user-id/menu-images/upload-pic-$timestamp.png';
-        final imageRef = FirebaseStorage.instance.ref(storagePath);
-        // Storageに複数枚の写真を保存
-        for (final image in imageFileList) {
-          await imageRef.putFile(image);
+
+        // 写真の枚数だけ写真をupload→Urlを取得
+        for (var i = 0; i < imageFileList.length; i++) {
+          // 秒まで入れたfile名を生成
+          storagePath = 'user-id/menu-images/upload-pic-$timestamp-$i.png';
+          final storageUrl = await ReviewImageRepository.instance.putImage(
+            imageFileList[i],
+            path: storagePath,
+          );
+
+          reviewImages.add(
+            ReviewImage(
+              storagePath: storagePath,
+              storageUrl: storageUrl,
+              updatedAt: Timestamp.now(),
+            ),
+          );
         }
-
-        // 保存した写真のURLを取得して、あらかじめ用意していた変数に入れる
-        storageUrl = await imageRef.getDownloadURL();
-        // 追加する写真のクラスを作成
-        reviewImage = ReviewImage(
-          storagePath: storagePath,
-          storageUrl: storageUrl,
-          updatedAt: Timestamp.now(),
-        );
       }
+      final lastStorageUrl = reviewImages.last.storageUrl;
+      await ReviewRepository.instance.update(
+        shopNameController.text,
+        menuNameController.text,
+        commentController.text,
+        lastStorageUrl,
+        reviewId: reviewDoc.id,
+      );
 
-      await ReviewRepository.instance.update(shopNameController.text,
-          menuNameController.text, commentController.text, storageUrl,
-          reviewId: reviewDoc.id);
-      // todo サーバーの時刻を保存
-      // 'updatedAt': FieldValue.serverTimestamp(),
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('登録されました'),
         ),
       );
       // imagePathにはファイル名を指定する
-      if (reviewImage == null) {
-        return;
+      if (reviewImages.isNotEmpty) {
+        for (final reviewImage in reviewImages) {
+          await ReviewImageRepository.instance.add(
+            reviewImage,
+            reviewId: reviewDoc.id,
+          );
+        }
       }
-      await reviewImagesRef(reviewDoc.id).add(reviewImage);
     }
 
     return ElevatedButton(

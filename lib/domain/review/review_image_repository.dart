@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:my_eat_log/domain/review/entities/review_image.dart';
 
@@ -33,9 +34,19 @@ class ReviewImageRepository {
     await reviewImagesRef(reviewId).add(data);
   }
 
-  Future<void> delete({required String storagePath}) async {
+  /// reviewIdとimageDocIdを受け取り、該当するレビューのサブコレクションを削除する
+  Future<void> delete(
+      {required String storagePath,
+      required String imageDocId,
+      required String reviewId}) async {
     //何番目の写真かindexを受け取る
     final ref = _storage.ref(storagePath);
+    await FirebaseFirestore.instance
+        .collection('reviews')
+        .doc(reviewId)
+        .collection('images')
+        .doc(imageDocId)
+        .delete();
     await ref.delete();
   }
 }

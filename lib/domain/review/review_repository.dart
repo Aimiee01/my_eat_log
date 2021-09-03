@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 
 class ReviewRepository {
@@ -32,7 +33,8 @@ class ReviewRepository {
         ReviewField.shopName: shopName,
         ReviewField.menuName: menuName,
         ReviewField.comment: comment,
-        if (storageUrl != null) ReviewField.latestImageUrl: storageUrl,
+        // 新しく追加される写真をlatestImageUrlに入れる
+        if (storageUrl != null) ReviewField.latestImageUrl: storageUrl
       },
     );
   }
