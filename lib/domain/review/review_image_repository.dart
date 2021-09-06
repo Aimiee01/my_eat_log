@@ -34,19 +34,23 @@ class ReviewImageRepository {
     await reviewImagesRef(reviewId).add(data);
   }
 
-  /// reviewIdとimageDocIdを受け取り、該当するレビューのサブコレクションを削除する
+  /// reviewIdとimageDocIdを受け取る
+  /// 該当するレビューのimagesのドキュメントを削除する
+  /// その後、storagePathを指定して該当するimageをFireStorageから削除する
   Future<void> delete(
-      {required String storagePath,
-      required String imageDocId,
-      required String reviewId}) async {
-    //何番目の写真かindexを受け取る
-    final ref = _storage.ref(storagePath);
+    String storageUrl, {
+    required String storagePath,
+    required String imageDocId,
+    required String reviewId,
+  }) async {
     await FirebaseFirestore.instance
         .collection('reviews')
         .doc(reviewId)
         .collection('images')
         .doc(imageDocId)
         .delete();
+
+    final ref = _storage.ref(storagePath);
     await ref.delete();
   }
 }

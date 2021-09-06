@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
+import 'package:my_eat_log/domain/review/entities/review_image.dart';
 
 class ReviewRepository {
   const ReviewRepository._();
@@ -20,6 +20,37 @@ class ReviewRepository {
     await reviewsRef.doc(reviewId).set(data);
   }
 
+  /// latestImageUrlの上書き
+  @Deprecated('Freezedを使ってReviewImageをcopyできるようになってから使用する')
+  Future<void> overwrite({
+    required ReviewImage? reviewImage,
+    required String reviewId,
+  }) async {
+    if (reviewImage != null) {
+      await FirebaseFirestore.instance.collection('reviews').doc(reviewId)
+          // latestImageUrlを更新する
+          .update({
+        'latestImageUrl': reviewImage.storageUrl,
+      });
+    } else {
+      await FirebaseFirestore.instance
+          .collection('reviews')
+          .doc(reviewId)
+          .update({'latestImageUrl': ''});
+    }
+  }
+
+  /// LatestImageUrlを更新する
+  Future<void> updateLatestImageUrl(
+    String? url, {
+    required String reviewId,
+  }) async {
+    await reviewsRef.doc(reviewId).update({'latestImageUrl': url});
+    // reviewsRef. doc(reviewId).update(
+    //   {ReviewField.latestImageUrl: url},
+    // );
+  }
+
   ///
   Future<void> update(
     String shopName,
@@ -34,7 +65,10 @@ class ReviewRepository {
         ReviewField.menuName: menuName,
         ReviewField.comment: comment,
         // 新しく追加される写真をlatestImageUrlに入れる
-        if (storageUrl != null) ReviewField.latestImageUrl: storageUrl
+        if (storageUrl != null)
+          ReviewField.latestImageUrl: storageUrl
+        else
+          ReviewField.latestImageUrl: ''
       },
     );
   }

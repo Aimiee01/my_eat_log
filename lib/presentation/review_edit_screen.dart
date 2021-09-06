@@ -31,7 +31,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   // 初期値は空 リストなので各かっこ
   final List<File> _imageFileList = [];
 
-  late Future<QuerySnapshot<ReviewImage>> reviewImageFuture;
+  late Stream<QuerySnapshot<ReviewImage>> reviewImageStream;
 
   /// ユーザーが写真ギャラリーから写真を選択する
   /// 写真が選ばれたら [_imageFileList] に [File] が入る
@@ -73,9 +73,59 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
     _menuNameController.text = review.menuName;
     _commentController = TextEditingController(text: review.comment);
     // 該当するreviewのreviewImagesを取得
-    reviewImageFuture = reviewImagesRef(widget.reviewDoc.id)
+    reviewImageStream = reviewImagesRef(widget.reviewDoc.id)
         .orderBy(ReviewImageField.updatedAt)
-        .get();
+        .snapshots();
+  }
+
+  /// アップロード済みの写真を削除する
+  /// 削除された写真より前に登録した写真があれば
+  /// latestImageUrlを更新する
+  void _onDeleteImageButton({
+    // 削除する写真のドキュメント
+    required QueryDocumentSnapshot<ReviewImage> doc,
+    // 全写真のリスト
+    required List<QueryDocumentSnapshot<ReviewImage>> docs,
+  }) {
+    final data = doc.data();
+
+    setState(() {
+      ReviewImageRepository.instance.delete(
+        data.storageUrl,
+        storagePath: data.storagePath,
+        imageDocId: doc.id,
+        reviewId: widget.reviewDoc.id,
+      );
+
+      debugPrint('docs.last.id == doc.id: ${docs.last.id == doc.id}');
+
+      // 登録済みの最後の写真と削除された写真のIDを比較
+      if (docs.last.id != doc.id) {
+        // 削除した画像は最後の画像ではなかったので latestImageUrl を書き換える必要はない。早期リターンする
+        return;
+      }
+      // 写真リストから削除された写真を取り除く
+      docs.removeLast();
+
+      // 最後の画像を削除していた場合
+      if (docs.isEmpty) {
+        // latestImageUrl: null にする
+        ReviewRepository.instance.updateLatestImageUrl(
+          null,
+          reviewId: widget.reviewDoc.id,
+        );
+        return;
+      }
+      // 最後の画像を削除したが、まだ他に画像が残っている場合
+      // 残っている画像のうち、最後の画像を latestImageUrl に設定する
+      final lastDoc = docs.last;
+      ReviewRepository.instance.updateLatestImageUrl(
+        lastDoc.data().storageUrl,
+        reviewId: widget.reviewDoc.id,
+      );
+    });
+
+    Navigator.pop(context);
   }
 
   @override
@@ -87,8 +137,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
       ),
       body: SafeArea(
         // FutureBuilderを使ってreviewのサブコレクションimagesのdocumentを入れる
-        child: FutureBuilder<QuerySnapshot<ReviewImage>>(
-          future: reviewImageFuture,
+        child: StreamBuilder<QuerySnapshot<ReviewImage>>(
+          stream: reviewImageStream,
           builder: (context, asyncValue) {
             // 写真がなければ空白を表示
             if (!asyncValue.hasData || asyncValue.hasError) {
@@ -188,27 +238,18 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                                       title: const Text('削除してもいいですか？'),
                                       actions: [
                                         TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            child: const Text('キャンセル')),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('キャンセル'),
+                                        ),
                                         // FirebaseStorageに保存済みの写真を削除する
                                         TextButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                ReviewImageRepository.instance
-                                                    .delete(
-                                                        storagePath: snapshot
-                                                            .docs[index]
-                                                            .data()
-                                                            .storagePath,
-                                                        imageDocId: snapshot
-                                                            .docs[index].id,
-                                                        reviewId: widget
-                                                            .reviewDoc.id);
-                                              });
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Text('OK')),
+                                          onPressed: () => _onDeleteImageButton(
+                                            doc: snapshot.docs[index],
+                                            docs: snapshot.docs,
+                                          ),
+                                          child: const Text('OK'),
+                                        ),
                                       ],
                                     );
                                   },
@@ -354,7 +395,6 @@ class _ItemUpdateButton extends StatelessWidget {
 
       /// レビューを更新する
       final reviewImages = <ReviewImage>[];
-      String? storageUrl;
       // 写真が選択されていればfirebase Storageに保存する
       if (imageFileList.isNotEmpty) {
         String? storagePath;
@@ -379,14 +419,17 @@ class _ItemUpdateButton extends StatelessWidget {
           );
         }
       }
-      final lastStorageUrl = reviewImages.last.storageUrl;
-      await ReviewRepository.instance.update(
-        shopNameController.text,
-        menuNameController.text,
-        commentController.text,
-        lastStorageUrl,
-        reviewId: reviewDoc.id,
-      );
+      // 新しく追加する写真があればlatestStorageUrlを更新する
+      if (imageFileList.isNotEmpty) {
+        final latestStorageUrl = reviewImages.last.storageUrl;
+        await ReviewRepository.instance.update(
+          shopNameController.text,
+          menuNameController.text,
+          commentController.text,
+          latestStorageUrl,
+          reviewId: reviewDoc.id,
+        );
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
