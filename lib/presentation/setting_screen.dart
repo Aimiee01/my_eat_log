@@ -11,8 +11,13 @@ class _SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: Column(),
+      appBar: AppBar(
+        title: const Text('設定'),
+      ),
+      body: const ListTile(
+        title: Text('ニックネーム'),
+        trailing: Icon(Icons.add_a_photo),
+      ),
     );
   }
 }

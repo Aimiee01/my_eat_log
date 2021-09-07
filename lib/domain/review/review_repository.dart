@@ -33,10 +33,7 @@ class ReviewRepository {
         'latestImageUrl': reviewImage.storageUrl,
       });
     } else {
-      await FirebaseFirestore.instance
-          .collection('reviews')
-          .doc(reviewId)
-          .update({'latestImageUrl': ''});
+      await reviewsRef.doc(reviewId).update({'latestImageUrl': ''});
     }
   }
 

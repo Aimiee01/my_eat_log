@@ -135,16 +135,25 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           child: SizedBox(
-                            height: 160,
-                            child: GridView.builder(
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                mainAxisSpacing: 6,
-                                crossAxisSpacing: 6,
-                              ),
-                              itemCount: _imageFileList.length,
+                            width: 350,
+                            height: 70,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _imageFileList.length + 1,
                               itemBuilder: (context, index) {
+                                if (index == 0) {
+                                  return const SizedBox(
+                                    width: 115,
+                                    child: TextButton(
+                                      onPressed: null,
+                                      child: Text('+'),
+                                    ),
+                                  );
+                                }
+
+                                final imageFileIndex = index - 1;
+                                final imageFile =
+                                    _imageFileList[imageFileIndex];
                                 return GestureDetector(
                                   onTap: () {
                                     showDialog<void>(
@@ -172,7 +181,11 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
                                   },
 
                                   // タッチ検出対象のWidget
-                                  child: Image.file(_imageFileList[index]),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5),
+                                    child: Image.file(imageFile),
+                                  ),
                                 );
                               },
                             ),

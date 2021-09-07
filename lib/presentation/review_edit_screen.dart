@@ -96,34 +96,33 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
         imageDocId: doc.id,
         reviewId: widget.reviewDoc.id,
       );
+    });
+    debugPrint('docs.last.id == doc.id: ${docs.last.id == doc.id}');
 
-      debugPrint('docs.last.id == doc.id: ${docs.last.id == doc.id}');
+    // 登録済みの最後の写真と削除された写真のIDを比較
+    if (docs.last.id != doc.id) {
+      // 削除した画像は最後の画像ではなかったので latestImageUrl を書き換える必要はない。早期リターンする
+      return;
+    }
+    // 写真リストから削除された写真を取り除く
+    docs.removeLast();
 
-      // 登録済みの最後の写真と削除された写真のIDを比較
-      if (docs.last.id != doc.id) {
-        // 削除した画像は最後の画像ではなかったので latestImageUrl を書き換える必要はない。早期リターンする
-        return;
-      }
-      // 写真リストから削除された写真を取り除く
-      docs.removeLast();
-
-      // 最後の画像を削除していた場合
-      if (docs.isEmpty) {
-        // latestImageUrl: null にする
-        ReviewRepository.instance.updateLatestImageUrl(
-          null,
-          reviewId: widget.reviewDoc.id,
-        );
-        return;
-      }
-      // 最後の画像を削除したが、まだ他に画像が残っている場合
-      // 残っている画像のうち、最後の画像を latestImageUrl に設定する
-      final lastDoc = docs.last;
+    // 最後の画像を削除していた場合
+    if (docs.isEmpty) {
+      // latestImageUrl: null にする
       ReviewRepository.instance.updateLatestImageUrl(
-        lastDoc.data().storageUrl,
+        null,
         reviewId: widget.reviewDoc.id,
       );
-    });
+      return;
+    }
+    // 最後の画像を削除したが、まだ他に画像が残っている場合
+    // 残っている画像のうち、最後の画像を latestImageUrl に設定する
+    final lastDoc = docs.last;
+    ReviewRepository.instance.updateLatestImageUrl(
+      lastDoc.data().storageUrl,
+      reviewId: widget.reviewDoc.id,
+    );
 
     Navigator.pop(context);
   }
@@ -214,19 +213,17 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                       ),
                     ),
                     const SizedBox(
-                      height: 30,
+                      height: 10,
                     ),
+                    const Text('登録済みの写真'),
+
                     // アップロード済みの写真があったら表示する
                     if (snapshot.docs.isNotEmpty)
                       SizedBox(
-                        height: 160,
-                        child: GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 6,
-                            crossAxisSpacing: 6,
-                          ),
+                        width: 350,
+                        height: 70,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
                           itemCount: snapshot.docs.length,
                           itemBuilder: (context, index) {
                             return GestureDetector(
@@ -257,9 +254,13 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                               },
                               // タッチ検出対象のWidget
                               // [CachedNetworkImage]にstorageUrlを指定して保存済みの写真を表示
-                              child: CachedNetworkImage(
-                                  imageUrl:
-                                      snapshot.docs[index].data().storageUrl),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: CachedNetworkImage(
+                                    imageUrl:
+                                        snapshot.docs[index].data().storageUrl),
+                              ),
                             );
                           },
                         ),
@@ -268,90 +269,121 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                     /// ifで写真が選ばれていたら表示する処理
                     /// ...スプレッド演算子を使ってtrueのとき表示したいWidgetを囲む
                     if (_imageFileList.isNotEmpty) ...[
-                      const Text(
-                        '新しく追加する写真',
-                        style: TextStyle(
-                            color: Colors.lightBlue,
-                            fontWeight: FontWeight.bold),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 10),
+                        child: Text(
+                          '追加する写真',
+                          style: TextStyle(
+                              color: Colors.lightBlue,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
                       SizedBox(
-                        height: 160,
-                        child: GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 6,
-                            crossAxisSpacing: 6,
-                          ),
-                          itemCount: _imageFileList.length,
+                        width: 350,
+                        height: 70,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _imageFileList.length + 1,
                           itemBuilder: (context, index) {
+                            // index[0]のときはプラスボタンをreturn
+                            if (index == 0) {
+                              return const SizedBox(
+                                width: 115,
+                                child: TextButton(
+                                  onPressed: null,
+                                  child: Text('+'),
+                                ),
+                              );
+                            }
+                            // + があるから1を引く
+                            final imageFileIndex = index - 1;
+                            final imageFile = _imageFileList[imageFileIndex];
+
                             return GestureDetector(
                               onTap: () {
                                 showDialog<void>(
-                                    context: context,
-                                    builder: (_) {
-                                      return AlertDialog(
-                                        title: const Text('削除してもいいですか？'),
-                                        actions: [
-                                          TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(context),
-                                              child: const Text('キャンセル')),
-                                          TextButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  _imageFileList
-                                                      .removeAt(index);
-                                                });
-                                                Navigator.pop(context);
+                                  context: context,
+                                  builder: (_) {
+                                    return AlertDialog(
+                                      title: const Text('削除してもいいですか？'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('キャンセル'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            setState(
+                                              () {
+                                                _imageFileList
+                                                    .removeAt(imageFileIndex);
                                               },
-                                              child: const Text('OK')),
-                                        ],
-                                      );
-                                    });
+                                            );
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
                               },
                               // タッチ検出対象のWidget
-                              child: Image.file(_imageFileList[index]),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: Image.file(imageFile),
+                              ),
                             );
                           },
                         ),
                       ),
                     ],
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              primary: Colors.blue[600]),
-                          onPressed: onAddImageButtonPressed,
-                          // カメラロールを開く
-                          child: const Text('写真を選択'),
-                        ),
-                        const SizedBox(width: 50),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            onPrimary: Colors.blue[600],
-                            primary: Colors.blue[100],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                primary: Colors.blue[600]),
+                            onPressed: onAddImageButtonPressed,
+                            // カメラロールを開く
+                            child: const Text('写真を選択'),
                           ),
-                          onPressed: getImageFromCamera,
-                          // カメラを起動
-                          child: const Text('写真を撮影'),
-                        ),
-                      ],
+                          const SizedBox(width: 30),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              onPrimary: Colors.blue[600],
+                              primary: Colors.blue[100],
+                            ),
+                            onPressed: getImageFromCamera,
+                            // カメラを起動
+                            child: const Text('写真を撮影'),
+                          ),
+                        ],
+                      ),
                     ),
 
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
-                      child: _ItemUpdateButton(
-                        _shopNameController,
-                        _menuNameController,
-                        _commentController,
-                        _formKey,
-                        widget.reviewDoc,
-                        _imageFileList,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _ItemDeleteButton(widget.reviewDoc),
+                          const SizedBox(width: 50),
+                          _ItemUpdateButton(
+                            _shopNameController,
+                            _menuNameController,
+                            _commentController,
+                            _formKey,
+                            widget.reviewDoc,
+                            _imageFileList,
+                          ),
+                        ],
                       ),
                     ),
-                    _ItemDeleteButton(widget.reviewDoc),
                   ],
                 ),
               ),
@@ -363,6 +395,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   }
 }
 
+/// レビュー更新ボタン
 class _ItemUpdateButton extends StatelessWidget {
   _ItemUpdateButton(
     this.shopNameController,
@@ -447,6 +480,7 @@ class _ItemUpdateButton extends StatelessWidget {
       }
     }
 
+    /// レビュー更新ボタン
     return ElevatedButton(
       onPressed: () async {
         await updateItem();
