@@ -52,8 +52,7 @@ class ReviewRepository {
   Future<void> update(
     String shopName,
     String menuName,
-    String comment,
-    String? storageUrl, {
+    String comment, {
     required String reviewId,
   }) async {
     await reviewsRef.doc(reviewId).update(
@@ -62,10 +61,6 @@ class ReviewRepository {
         ReviewField.menuName: menuName,
         ReviewField.comment: comment,
         // 新しく追加される写真をlatestImageUrlに入れる
-        if (storageUrl != null)
-          ReviewField.latestImageUrl: storageUrl
-        else
-          ReviewField.latestImageUrl: ''
       },
     );
   }

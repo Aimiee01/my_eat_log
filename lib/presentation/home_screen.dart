@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 import 'package:my_eat_log/domain/review/review_repository.dart';
 import 'package:my_eat_log/presentation/favorite_screen.dart';
-import 'package:my_eat_log/presentation/review_edit_screen.dart';
+import 'package:my_eat_log/presentation/review_edit_screen/review_edit_screen.dart';
 import 'package:my_eat_log/presentation/setting_screen.dart';
 import 'review_add_screen.dart';
 
