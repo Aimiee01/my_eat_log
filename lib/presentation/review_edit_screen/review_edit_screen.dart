@@ -2,12 +2,11 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 import 'package:my_eat_log/domain/review/entities/review_image.dart';
-import 'package:my_eat_log/presentation/review_edit_screen/edit_images.dart';
-import 'package:my_eat_log/presentation/review_edit_screen/edit_textfields.dart';
-import 'package:my_eat_log/presentation/review_edit_screen/review_delete_button.dart';
+import 'package:my_eat_log/presentation/review_edit_screen/edit_images_view.dart';
+import 'package:my_eat_log/presentation/review_edit_screen/edit_textfields_view.dart';
+import 'package:my_eat_log/presentation/review_edit_screen/delete_review_button.dart';
 
 import 'review_update_button.dart';
 
@@ -52,17 +51,6 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
     _menuNameController.dispose();
     _commentController.dispose();
     super.dispose();
-  }
-
-  Future<void> getImageFromCamera() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.camera);
-    if (pickedFile == null) {
-      return;
-    }
-    setState(() {
-      _imageFileList.add(File(pickedFile.path));
-    });
   }
 
   // formKeyは共通して使用する
@@ -125,7 +113,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ItemDeleteButton(widget.reviewDoc),
+                          DeleteReviewButton(widget.reviewDoc),
                           const SizedBox(width: 50),
                           ItemUpdateButton(
                             shopNameController: _shopNameController,

@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MyLog'),
+        title: const Text('My Eat Log'),
         actions: [
           IconButton(
             onPressed: () => Navigator.of(context).push(
@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 return ListTile(
                   // imageUrlがあれば表示
                   leading: latestImageUrl == null
-                      ? const Icon(Icons.image_outlined)
+                      ? Image.asset('assets/images/no_image.png')
                       // : Image.network(latestImageUrl),
                       : CachedNetworkImage(
                           width: 80,

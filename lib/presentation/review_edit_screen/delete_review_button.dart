@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 
-class ItemDeleteButton extends StatelessWidget {
-  const ItemDeleteButton(this.reviewDoc, {Key? key}) : super(key: key);
+class DeleteReviewButton extends StatelessWidget {
+  const DeleteReviewButton(this.reviewDoc, {Key? key}) : super(key: key);
   final QueryDocumentSnapshot<Review> reviewDoc;
 
   @override

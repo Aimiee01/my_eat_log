@@ -8,8 +8,8 @@ import 'package:my_eat_log/domain/review/review_image_repository.dart';
 import 'package:my_eat_log/domain/review/review_repository.dart';
 import 'package:uuid/uuid.dart';
 
-class ItemAddButton extends StatelessWidget {
-  const ItemAddButton(
+class AddReviewButton extends StatelessWidget {
+  const AddReviewButton(
     this._imageFileList, {
     Key? key,
     required this.shopNameController,
