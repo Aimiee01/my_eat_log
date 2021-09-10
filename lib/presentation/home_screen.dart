@@ -6,7 +6,7 @@ import 'package:my_eat_log/domain/review/review_repository.dart';
 import 'package:my_eat_log/presentation/favorite_screen.dart';
 import 'package:my_eat_log/presentation/review_edit_screen/review_edit_screen.dart';
 import 'package:my_eat_log/presentation/setting_screen.dart';
-import 'review_add_screen.dart';
+import 'review_add_screen/review_add_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);

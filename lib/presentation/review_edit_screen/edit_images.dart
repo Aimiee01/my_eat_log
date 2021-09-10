@@ -33,31 +33,10 @@ class EditImagesView extends StatefulWidget {
 
 class _EditImagesViewState extends State<EditImagesView> {
   /// ユーザーが写真ギャラリーから写真を選択する
-  /// 写真が選ばれたら [widget.imageFileList] に [File] が入る
+  /// 写真が選ばれたら `widget.imageFileList` に [File] が入る
   /// キャンセルされた場合は何もしない
-  Future<void> onAddImageButtonPressed() async {
-    final pickedFiles = await ImagePicker().pickMultiImage();
-    if (pickedFiles == null || pickedFiles.isEmpty) {
-      return showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return const SimpleDialog(
-              title: Text('title'),
-              children: [
-                SimpleDialogOption(
-                  onPressed: null,
-                  child: Text('カメラを起動する'),
-                ),
-              ],
-            );
-          });
-    }
-    setState(() {
-      /// ImagePickerで選択された複数枚の写真
-      final files = pickedFiles.map((pickedFile) => File(pickedFile.path));
-      widget.addImageFiles(files.toList());
-    });
-  }
+  ///   /// ユーザーが選択したデバイスの写真ファイル
+  File? imageFile;
 
   @override
   Widget build(BuildContext context) {
@@ -78,9 +57,13 @@ class _EditImagesViewState extends State<EditImagesView> {
               return SizedBox(
                 width: 115,
                 child: TextButton(
-                  // 写真を選択するための処理を書く
+                  // 選択肢のダイアログを開く
                   onPressed: onAddImageButtonPressed,
-                  // カメラロールを開く
+                  style: TextButton.styleFrom(
+                    textStyle: const TextStyle(fontSize: 40),
+                    backgroundColor: Colors.grey,
+                    primary: Colors.white,
+                  ),
                   child: const Text('+'),
                 ),
               );
@@ -106,7 +89,6 @@ class _EditImagesViewState extends State<EditImagesView> {
                           TextButton(
                             onPressed: () {
                               widget.removeImageFile(imageFileIndex);
-
                               Navigator.pop(context);
                             },
                             child: const Text('OK'),
@@ -164,6 +146,56 @@ class _EditImagesViewState extends State<EditImagesView> {
         ),
       ),
     );
+  }
+
+  Future<void> onAddImageButtonPressed() async {
+    // final pickedFiles = await ImagePicker().pickMultiImage();
+    // if (pickedFiles == null || pickedFiles.isEmpty) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            children: [
+              SimpleDialogOption(
+                onPressed: selectImagesButton,
+                padding: const EdgeInsets.all(20),
+                child: const Text('カメラロールを開く'),
+              ),
+              SimpleDialogOption(
+                onPressed: getImageFromCamera,
+                padding: const EdgeInsets.all(20),
+                child: const Text('カメラを起動する'),
+              ),
+            ],
+          );
+        });
+  }
+
+  Future<void> selectImagesButton() async {
+    final pickedFiles = await ImagePicker().pickMultiImage();
+    // ↑写真を選択するときのawaitを入れ忘れていた
+    setState(() {
+      if (pickedFiles != null) {
+        /// ImagePickerで選択された複数枚の写真
+        final files = pickedFiles.map((pickedFile) => File(pickedFile.path));
+        widget.addImageFiles(files.toList());
+      }
+    });
+    Navigator.pop(context);
+  }
+
+  Future<void> getImageFromCamera() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.camera);
+    if (pickedFile == null) {
+      return;
+    }
+    setState(() {
+      // ↓imageFileにカメラで撮影した写真をリストとして渡す
+      final imageFile = <File>[File(pickedFile.path)];
+      widget.addImageFiles(imageFile.toList());
+    });
+    Navigator.pop(context);
   }
 
   /// アップロード済みの写真を削除する
