@@ -16,10 +16,12 @@ class AddReviewButton extends StatelessWidget {
     required this.menuNameController,
     required this.commentController,
     required this.globalKey,
+    required this.ratingStar,
   }) : super(key: key);
   final TextEditingController shopNameController;
   final TextEditingController menuNameController;
   final TextEditingController commentController;
+  final double ratingStar;
 
   /// カメラロールで選択された写真のリスト
   final List<File> _imageFileList;
@@ -72,6 +74,7 @@ class AddReviewButton extends StatelessWidget {
         comment: commentController.text,
         latestImageUrl:
             reviewImages.isEmpty ? null : reviewImages.last.storageUrl,
+        ratingStar: ratingStar,
       );
       await ReviewRepository.instance.add(
         newReview,
@@ -93,12 +96,12 @@ class AddReviewButton extends StatelessWidget {
           );
         }
       }
+      Navigator.pop(context);
     }
 
     return ElevatedButton(
       onPressed: () async {
         await _onSaveButtonPressed();
-        Navigator.pop(context);
       },
       style: ElevatedButton.styleFrom(
           primary: Colors.blue, onPrimary: Colors.white),

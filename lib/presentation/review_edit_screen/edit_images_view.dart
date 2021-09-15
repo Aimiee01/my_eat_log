@@ -55,7 +55,7 @@ class _EditImagesViewState extends State<EditImagesView> {
             // 写真がどこにも存在しない場合+ボタンを表示
             if (index == 0) {
               return SizedBox(
-                width: 115,
+                width: 80,
                 child: TextButton(
                   // 選択肢のダイアログを開く
                   onPressed: onAddImageButtonPressed,
@@ -100,7 +100,15 @@ class _EditImagesViewState extends State<EditImagesView> {
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Image.file(imageFile),
+                  child: Container(
+                      width: 70,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.black38,
+                          width: 4,
+                        ),
+                      ),
+                      child: Image.file(imageFile)),
                 ),
               );
             }
@@ -245,7 +253,5 @@ class _EditImagesViewState extends State<EditImagesView> {
       lastDoc.data().storageUrl,
       reviewId: widget.reviewDoc.id,
     );
-
-    Navigator.pop(context);
   }
 }

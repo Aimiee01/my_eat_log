@@ -13,6 +13,7 @@ class ItemUpdateButton extends StatelessWidget {
     required this.shopNameController,
     required this.menuNameController,
     required this.commentController,
+    required this.ratingStar,
     required this.globalKey,
     required this.reviewDoc,
     required this.imageFileList,
@@ -21,6 +22,7 @@ class ItemUpdateButton extends StatelessWidget {
   final TextEditingController shopNameController;
   final TextEditingController menuNameController;
   final TextEditingController commentController;
+  final double ratingStar;
   // <FormState>を必ず入れる(ジェネリクス)
   final GlobalKey<FormState> globalKey;
   final QueryDocumentSnapshot<Review> reviewDoc;
@@ -71,6 +73,7 @@ class ItemUpdateButton extends StatelessWidget {
         shopNameController.text,
         menuNameController.text,
         commentController.text,
+        ratingStar,
         reviewId: reviewDoc.id,
       );
 
@@ -96,8 +99,6 @@ class ItemUpdateButton extends StatelessWidget {
         await updateItem();
         Navigator.pop(context);
       },
-      style: ElevatedButton.styleFrom(
-          primary: Colors.blue, onPrimary: Colors.white),
       child: const Text(
         '更新',
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:my_eat_log/presentation/review_add_screen/add_images_view.dart';
 import 'package:my_eat_log/presentation/review_add_screen/add_textfields_view.dart';
+import 'package:my_eat_log/presentation/review_add_screen/add_rating_view.dart';
 import 'add_review_button.dart';
 
 class ReviewAddScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
   final _shopNameController = TextEditingController();
   final _menuNameController = TextEditingController();
   final _commentController = TextEditingController();
+  late double rating = 0;
   final List<File> _imageFileList = [];
 
   /// ユーザーが選択したデバイスの写真ファイル
@@ -38,36 +40,51 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('新規登録')),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                AddTextfieldsView(
-                    formKey: _formKey,
-                    shopNameController: _shopNameController,
-                    menuNameController: _menuNameController,
-                    commentController: _commentController),
-                AddImagesView(imageFileList: _imageFileList),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('評価'),
-                    Text(
-                      '★★★★☆',
-                      style: TextStyle(fontSize: 20, color: Colors.yellow[800]),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // 文字入力部分
+              AddTextfieldsView(
+                  formKey: _formKey,
+                  shopNameController: _shopNameController,
+                  menuNameController: _menuNameController,
+                  commentController: _commentController),
+
+              // 写真表示部分
+              AddImagesView(imageFileList: _imageFileList),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(right: 20),
+                    child: Text(
+                      '評価',
+                      style: TextStyle(fontSize: 18, color: Colors.black54),
                     ),
-                  ],
-                ),
-                // 登録ボタン
-                AddReviewButton(_imageFileList,
-                    shopNameController: _shopNameController,
-                    menuNameController: _menuNameController,
-                    commentController: _commentController,
-                    globalKey: _formKey),
-              ],
-            ),
+                  ),
+
+                  // 評価表示部分
+                  AddRatingView(
+                    // ratingでユーザーが入力した評価を受け取る
+                    newRatingStarNum: (_rating) {
+                      setState(() {
+                        rating = _rating;
+                      });
+                    },
+                  )
+                ],
+              ),
+              const SizedBox(height: 24),
+              // 新規レビューの「登録」ボタン
+              AddReviewButton(_imageFileList,
+                  shopNameController: _shopNameController,
+                  menuNameController: _menuNameController,
+                  commentController: _commentController,
+                  ratingStar: rating,
+                  globalKey: _formKey),
+            ],
           ),
         ),
       ),

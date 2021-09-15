@@ -26,14 +26,6 @@ class EditTextfieldsView extends StatefulWidget {
 class _EditTextfieldsViewState extends State<EditTextfieldsView> {
   @override
   Widget build(BuildContext context) {
-    @override
-    final review = widget.reviewDoc.data();
-    // FireStoreの文字列をTextFeledに代入
-    widget.shopNameController.value =
-        widget.shopNameController.value.copyWith(text: review.shopName);
-    widget.menuNameController.text = review.menuName;
-    widget.commentController.text = review.comment;
-
     return Form(
       key: widget.formKey,
       child: Column(

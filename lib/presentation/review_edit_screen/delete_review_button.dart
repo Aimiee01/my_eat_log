@@ -36,7 +36,8 @@ class DeleteReviewButton extends StatelessWidget {
         ),
       ),
       style: ElevatedButton.styleFrom(
-          primary: Colors.redAccent, onPrimary: Colors.white),
+        primary: Colors.redAccent,
+      ),
       child: const Text(
         '削除',
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),

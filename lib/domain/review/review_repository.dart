@@ -52,7 +52,8 @@ class ReviewRepository {
   Future<void> update(
     String shopName,
     String menuName,
-    String comment, {
+    String comment,
+    double ratingStar, {
     required String reviewId,
   }) async {
     await reviewsRef.doc(reviewId).update(
@@ -60,6 +61,7 @@ class ReviewRepository {
         ReviewField.shopName: shopName,
         ReviewField.menuName: menuName,
         ReviewField.comment: comment,
+        ReviewField.ratingStar: ratingStar,
         // 新しく追加される写真をlatestImageUrlに入れる
       },
     );

@@ -33,7 +33,7 @@ class _AddImagesViewState extends State<AddImagesView> {
             if (index == 0) {
               // 写真の前にタップ可能なTextButtonを配置
               return SizedBox(
-                width: 115,
+                width: 80,
                 child: TextButton(
                   // 選択肢のダイアログを開く
                   onPressed: onAddImageButtonPressed,
@@ -77,7 +77,7 @@ class _AddImagesViewState extends State<AddImagesView> {
 
               // タッチ検出対象のWidget
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
+                padding: const EdgeInsets.only(left: 10),
                 child: Image.file(imageFile),
               ),
             );
@@ -121,6 +121,7 @@ class _AddImagesViewState extends State<AddImagesView> {
       final files = pickedFiles.map((pickedFile) => File(pickedFile.path));
       widget.imageFileList.addAll(files);
     });
+    Navigator.pop(context);
   }
 
   Future<void> getImageFromCamera() async {
@@ -131,6 +132,8 @@ class _AddImagesViewState extends State<AddImagesView> {
     }
     setState(() {
       final imageFile = File(pickedFile.path);
+      widget.imageFileList.add(imageFile);
     });
+    Navigator.pop(context);
   }
 }
