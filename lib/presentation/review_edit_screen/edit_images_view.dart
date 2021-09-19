@@ -7,25 +7,38 @@ import 'package:image_picker/image_picker.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 import 'package:my_eat_log/domain/review/entities/review_image.dart';
 import 'package:my_eat_log/domain/review/review_image_repository.dart';
-import 'package:my_eat_log/domain/review/review_repository.dart';
 
 class EditImagesView extends StatefulWidget {
   const EditImagesView({
     Key? key,
+
+    /// 該当するreviewの全写真
     required this.snapshot,
+    required this.imageUrlList,
     required this.reviewDoc,
     required this.imageFileList,
     // 新しく選択された写真たち
     required this.addImageFiles,
-    // 削除する写真たち
+    // 新しく選択された写真の中で、削除する写真たち
     required this.removeImageFile,
+    required this.onRemoveImageUrl,
   }) : super(key: key);
 
   final QuerySnapshot<ReviewImage> snapshot;
   final QueryDocumentSnapshot<Review> reviewDoc;
+
+  /// ユーザーが選択した写真のリスト
   final List<File> imageFileList;
+
+  /// アップロード済み写真のURLリスト
+  final List<String> imageUrlList;
   final ValueChanged<List<File>> addImageFiles;
+
+  /// 追加予定の画像ファイルを削除した時のコールバック
   final ValueChanged<int> removeImageFile;
+
+  /// アップロード済み写真を削除予約するためのコールバック
+  final ValueChanged<int> onRemoveImageUrl;
 
   @override
   _EditImagesViewState createState() => _EditImagesViewState();
@@ -41,6 +54,7 @@ class _EditImagesViewState extends State<EditImagesView> {
   @override
   Widget build(BuildContext context) {
     final imageFileList = widget.imageFileList;
+    final imageUrlList = widget.imageUrlList;
     return Padding(
       padding: const EdgeInsets.only(top: 20),
       child: SizedBox(
@@ -49,7 +63,7 @@ class _EditImagesViewState extends State<EditImagesView> {
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           // プラスボタンを表示するので2つのlengthの合計に+1する
-          itemCount: widget.snapshot.docs.length + imageFileList.length + 1,
+          itemCount: imageUrlList.length + imageFileList.length + 1,
 
           itemBuilder: (context, index) {
             // 写真がどこにも存在しない場合+ボタンを表示
@@ -71,7 +85,7 @@ class _EditImagesViewState extends State<EditImagesView> {
             // 新しく追加する写真がある場合
             // 追加する写真の枚数とindex
             if (index <= imageFileList.length) {
-              // + があるから1を引く
+              // + の分、1を引く
               final imageFileIndex = index - 1;
               final imageFile = imageFileList[imageFileIndex];
               return GestureDetector(
@@ -114,7 +128,12 @@ class _EditImagesViewState extends State<EditImagesView> {
             }
             // 残りはアップロード済みの写真
             final docsIndex = index - (imageFileList.length + 1);
-            final imageDoc = widget.snapshot.docs[docsIndex];
+            final imageUrl = imageUrlList[docsIndex];
+            // 削除予定の写真
+            final doc = widget.snapshot.docs[docsIndex];
+
+            // reviewのimagesサブコレクションを削除する
+
             return GestureDetector(
               onTap: () {
                 showDialog<void>(
@@ -130,10 +149,11 @@ class _EditImagesViewState extends State<EditImagesView> {
                         // FirebaseStorageに保存済みの写真を削除する
                         TextButton(
                           onPressed: () {
-                            _onDeleteImageButton(
-                              doc: imageDoc,
-                              docs: widget.snapshot.docs,
-                            );
+                            widget.onRemoveImageUrl(docsIndex);
+                            // 削除予定の写真をリストに入れる
+                            DeleteImageParameter(
+                                documentId: doc.id,
+                                storagePath: doc.data().storagePath);
                             Navigator.pop(context);
                           },
                           child: const Text('OK'),
@@ -147,7 +167,7 @@ class _EditImagesViewState extends State<EditImagesView> {
               // 保存済みの写真を表示
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5),
-                child: Image.network(imageDoc.data().storageUrl),
+                child: Image.network(imageUrl),
               ),
             );
           },
@@ -204,54 +224,5 @@ class _EditImagesViewState extends State<EditImagesView> {
       widget.addImageFiles(imageFile.toList());
     });
     Navigator.pop(context);
-  }
-
-  /// アップロード済みの写真を削除する
-  /// 削除された写真より前に登録した写真があれば
-  /// latestImageUrlを更新する
-
-  void _onDeleteImageButton({
-    // 削除する写真のドキュメント
-    required QueryDocumentSnapshot<ReviewImage> doc,
-    // 全写真のリスト
-    required List<QueryDocumentSnapshot<ReviewImage>> docs,
-  }) {
-    final data = doc.data();
-
-    setState(() {
-      ReviewImageRepository.instance.delete(
-        data.storageUrl,
-        storagePath: data.storagePath,
-        imageDocId: doc.id,
-        reviewId: widget.reviewDoc.id,
-      );
-    });
-    debugPrint('docs.last.id == doc.id: ${docs.last.id == doc.id}');
-
-    // 登録済みの最後の写真と削除された写真のIDを比較
-    if (docs.last.id != doc.id) {
-      // 削除した画像は最後の画像ではなかったので latestImageUrl を書き換える必要はない。
-      // 早期リターンする
-      return;
-    }
-    // 写真リストから削除された写真を取り除く
-    docs.removeLast();
-
-    // 最後の画像を削除していた場合
-    if (docs.isEmpty) {
-      // latestImageUrl: null にする
-      ReviewRepository.instance.updateLatestImageUrl(
-        null,
-        reviewId: widget.reviewDoc.id,
-      );
-      return;
-    }
-    // 最後の画像を削除したが、まだ他に画像が残っている場合
-    // 残っている画像のうち、最後の画像を latestImageUrl に設定する
-    final lastDoc = docs.last;
-    ReviewRepository.instance.updateLatestImageUrl(
-      lastDoc.data().storageUrl,
-      reviewId: widget.reviewDoc.id,
-    );
   }
 }

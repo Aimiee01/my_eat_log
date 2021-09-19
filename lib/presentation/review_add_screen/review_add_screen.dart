@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:my_eat_log/presentation/review_add_screen/add_images_view.dart';
-import 'package:my_eat_log/presentation/review_add_screen/add_textfields_view.dart';
 import 'package:my_eat_log/presentation/review_add_screen/add_rating_view.dart';
+import 'package:my_eat_log/presentation/review_add_screen/add_textfields_view.dart';
 import 'add_review_button.dart';
 
 class ReviewAddScreen extends StatefulWidget {

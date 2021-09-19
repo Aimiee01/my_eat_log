@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 import 'package:my_eat_log/domain/review/entities/review_image.dart';
+import 'package:my_eat_log/presentation/review_edit_screen/delete_review_button.dart';
 import 'package:my_eat_log/presentation/review_edit_screen/edit_images_view.dart';
 import 'package:my_eat_log/presentation/review_edit_screen/edit_textfields_view.dart';
-import 'package:my_eat_log/presentation/review_edit_screen/delete_review_button.dart';
 
 import 'edit_rating_view.dart';
 import 'review_update_button.dart';
@@ -19,6 +19,7 @@ class ReviewEditScreen extends StatefulWidget {
   }) : super(key: key);
 
   /// 値受け取り用の変数
+  /// CollectionReference でgetして得たQuerySnapshotのdocs内にあるもの
   final QueryDocumentSnapshot<Review> reviewDoc;
   // final FirebaseStorage storage;
 
@@ -30,6 +31,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   // 初期値は空 リストなので各かっこ
   // 一度しか代入しないものは全てfinal
   final List<File> _imageFileList = [];
+  // storageに保存されている写真urlリスト
+  final List<String> _imageUrlList = [];
 
   // initState内で代入するのでlateを使う
 
@@ -52,6 +55,13 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
     reviewImageStream = reviewImagesRef(widget.reviewDoc.id)
         .orderBy(ReviewImageField.updatedAt)
         .snapshots();
+    // 該当するreviewのimageのURLをリストに追加する
+    // .firstを使って一度のみの取得にする
+    // thenを使用することで非同期処理になる
+    reviewImageStream.first.then((snapshot) {
+      // mapでURLを取り出しaddAllでリストに追加
+      _imageUrlList.addAll(snapshot.docs.map((e) => e.data().storageUrl));
+    });
     super.initState();
   }
 
@@ -82,6 +92,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
               return const SizedBox();
             }
             final snapshot = asyncValue.data!;
+
             return Padding(
               padding: const EdgeInsets.all(15),
               child: SingleChildScrollView(
@@ -98,10 +109,12 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                       commentController: _commentController,
                     ),
                     // 写真表示部分
+
                     EditImagesView(
                       snapshot: snapshot,
                       reviewDoc: widget.reviewDoc,
                       imageFileList: _imageFileList,
+                      imageUrlList: _imageUrlList,
                       addImageFiles: (imageFiles) {
                         setState(() {
                           // Listが更新される
@@ -111,6 +124,11 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                       removeImageFile: (imageFileindex) {
                         setState(() {
                           _imageFileList.removeAt(imageFileindex);
+                        });
+                      },
+                      onRemoveImageUrl: (index) {
+                        setState(() {
+                          _imageUrlList.removeAt(index);
                         });
                       },
                     ),
@@ -126,16 +144,20 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                       },
                     ),
 
-                    // 更新・削除ボタン部分
                     Padding(
                       padding: const EdgeInsets.only(top: 50),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Flexible(child: DeleteReviewButton(widget.reviewDoc)),
+                          // 削除ボタン
+                          Flexible(
+                            child: DeleteReviewButton(widget.reviewDoc),
+                          ),
                           const SizedBox(width: 16),
+                          // 更新ボタン
                           Flexible(
                             child: ItemUpdateButton(
+                              snapshot: snapshot,
                               shopNameController: _shopNameController,
                               menuNameController: _menuNameController,
                               commentController: _commentController,
@@ -143,6 +165,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                               globalKey: _formKey,
                               reviewDoc: widget.reviewDoc,
                               imageFileList: _imageFileList,
+                              imageUrlList: _imageUrlList,
                             ),
                           ),
                         ],
