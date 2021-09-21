@@ -38,28 +38,28 @@ class ReviewImageRepository {
   /// その後、storagePathを指定して該当するimageをFireStorageから削除する
   Future<void> delete({
     required String reviewId,
-    required DeleteImageParameter imageInfo,
+    required DeleteImageParameter deleteImage,
   }) async {
     await FirebaseFirestore.instance
         .collection('reviews')
         .doc(reviewId)
         .collection('images')
-        .doc(imageInfo.documentId)
+        .doc(deleteImage.documentId)
         .delete();
     // storageUrlじゃなくてstoragePathを指定する
-    final ref = _storage.ref(imageInfo.storagePath);
+    final ref = _storage.ref(deleteImage.storagePath);
     await ref.delete();
   }
 
   /// 更新ボタンを押すと呼ばれる
   Future<void> deletes({
     required String reviewId,
-    required List<DeleteImageParameter> imageInfoList,
+    required List<DeleteImageParameter> deleteImageList,
   }) async {
-    for (final imageInfo in imageInfoList) {
+    for (final deleteImage in deleteImageList) {
       await delete(
         reviewId: reviewId,
-        imageInfo: imageInfo,
+        deleteImage: deleteImage,
       );
     }
   }

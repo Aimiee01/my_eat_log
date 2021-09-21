@@ -21,7 +21,8 @@ class EditImagesView extends StatefulWidget {
     required this.addImageFiles,
     // 新しく選択された写真の中で、削除する写真たち
     required this.removeImageFile,
-    required this.onRemoveImageUrl,
+    required this.removeImageUrls,
+    required this.onDeleteImageParameter,
   }) : super(key: key);
 
   final QuerySnapshot<ReviewImage> snapshot;
@@ -29,16 +30,19 @@ class EditImagesView extends StatefulWidget {
 
   /// ユーザーが選択した写真のリスト
   final List<File> imageFileList;
+  final ValueChanged<List<File>> addImageFiles;
 
   /// アップロード済み写真のURLリスト
   final List<String> imageUrlList;
-  final ValueChanged<List<File>> addImageFiles;
 
   /// 追加予定の画像ファイルを削除した時のコールバック
   final ValueChanged<int> removeImageFile;
 
+  /// アップロード済み写真のURLを削除した時のコールバック
+  final ValueChanged<int> removeImageUrls;
+
   /// アップロード済み写真を削除予約するためのコールバック
-  final ValueChanged<int> onRemoveImageUrl;
+  final ValueChanged<DeleteImageParameter> onDeleteImageParameter;
 
   @override
   _EditImagesViewState createState() => _EditImagesViewState();
@@ -50,6 +54,13 @@ class _EditImagesViewState extends State<EditImagesView> {
   /// キャンセルされた場合は何もしない
   ///   /// ユーザーが選択したデバイスの写真ファイル
   File? imageFile;
+  // 削除予定の写真リスト
+  final List<DeleteImageParameter> deleteImageList = [];
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +116,7 @@ class _EditImagesViewState extends State<EditImagesView> {
                               widget.removeImageFile(imageFileIndex);
                               Navigator.pop(context);
                             },
-                            child: const Text('OK'),
+                            child: const Text('削除'),
                           ),
                         ],
                       );
@@ -129,7 +140,6 @@ class _EditImagesViewState extends State<EditImagesView> {
             // 残りはアップロード済みの写真
             final docsIndex = index - (imageFileList.length + 1);
             final imageUrl = imageUrlList[docsIndex];
-            // 削除予定の写真
             final doc = widget.snapshot.docs[docsIndex];
 
             // reviewのimagesサブコレクションを削除する
@@ -140,7 +150,9 @@ class _EditImagesViewState extends State<EditImagesView> {
                   context: context,
                   builder: (_) {
                     return AlertDialog(
-                      title: const Text('削除してもいいですか？'),
+                      title: const Text('写真を削除'),
+                      content: const Text('更新ボタンを押すと削除が実行されます'),
+                      contentTextStyle: const TextStyle(color: Colors.black),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
@@ -148,15 +160,21 @@ class _EditImagesViewState extends State<EditImagesView> {
                         ),
                         // FirebaseStorageに保存済みの写真を削除する
                         TextButton(
+                          style: TextButton.styleFrom(
+                            primary: Colors.redAccent,
+                          ),
                           onPressed: () {
-                            widget.onRemoveImageUrl(docsIndex);
-                            // 削除予定の写真をリストに入れる
-                            DeleteImageParameter(
+                            // DeleteImageParameterを渡す
+                            widget.onDeleteImageParameter(
+                              DeleteImageParameter(
                                 documentId: doc.id,
-                                storagePath: doc.data().storagePath);
+                                storagePath: doc.data().storagePath,
+                              ),
+                            ); // 削除予定の写真を非表示にする
+                            widget.removeImageUrls(docsIndex);
                             Navigator.pop(context);
                           },
-                          child: const Text('OK'),
+                          child: const Text('削除'),
                         ),
                       ],
                     );

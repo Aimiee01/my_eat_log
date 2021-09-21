@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 import 'package:my_eat_log/domain/review/entities/review_image.dart';
+import 'package:my_eat_log/domain/review/review_image_repository.dart';
 import 'package:my_eat_log/presentation/review_edit_screen/delete_review_button.dart';
 import 'package:my_eat_log/presentation/review_edit_screen/edit_images_view.dart';
 import 'package:my_eat_log/presentation/review_edit_screen/edit_textfields_view.dart';
@@ -55,15 +56,18 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
     reviewImageStream = reviewImagesRef(widget.reviewDoc.id)
         .orderBy(ReviewImageField.updatedAt)
         .snapshots();
-    // 該当するreviewのimageのURLをリストに追加する
     // .firstを使って一度のみの取得にする
-    // thenを使用することで非同期処理になる
+    // Futureクラスのthenを使用して非同期処理
     reviewImageStream.first.then((snapshot) {
       // mapでURLを取り出しaddAllでリストに追加
+      // 該当するreviewのimageのURLをリストに追加する
       _imageUrlList.addAll(snapshot.docs.map((e) => e.data().storageUrl));
     });
+
     super.initState();
   }
+
+  final _deleteImageList = <DeleteImageParameter>[];
 
   @override
   void dispose() {
@@ -83,9 +87,11 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
         title: const Text('編集画面'),
       ),
       body: SafeArea(
-        // FutureBuilderを使ってreviewのサブコレクションimagesのdocumentを入れる
-        child: StreamBuilder<QuerySnapshot<ReviewImage>>(
-          stream: reviewImageStream,
+        // reviewのサブコレクションimagesのdocumentを入れる
+        child: FutureBuilder<QuerySnapshot<ReviewImage>>(
+          // FutureBuilderなのでstreamの部分はfutureになる
+          // そこで.firstを使い一度だけ取得する
+          future: reviewImageStream.first,
           builder: (context, asyncValue) {
             // 写真がなければ空白を表示
             if (!asyncValue.hasData || asyncValue.hasError) {
@@ -126,9 +132,16 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                           _imageFileList.removeAt(imageFileindex);
                         });
                       },
-                      onRemoveImageUrl: (index) {
+                      removeImageUrls: (imageUrlIndex) {
                         setState(() {
-                          _imageUrlList.removeAt(index);
+                          // RangeError (RangeError (index): Invalid value: Not in inclusive range 0..2: 3)
+                          _imageUrlList.removeAt(imageUrlIndex);
+                        });
+                      },
+                      onDeleteImageParameter: (deleteImageParameter) {
+                        setState(() {
+                          // 削除予定の写真をリストに追加
+                          _deleteImageList.add(deleteImageParameter);
                         });
                       },
                     ),
@@ -156,7 +169,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                           const SizedBox(width: 16),
                           // 更新ボタン
                           Flexible(
-                            child: ItemUpdateButton(
+                            child: ReviewUpdateButton(
                               snapshot: snapshot,
                               shopNameController: _shopNameController,
                               menuNameController: _menuNameController,
@@ -166,6 +179,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                               reviewDoc: widget.reviewDoc,
                               imageFileList: _imageFileList,
                               imageUrlList: _imageUrlList,
+                              deleteImageList: _deleteImageList,
                             ),
                           ),
                         ],

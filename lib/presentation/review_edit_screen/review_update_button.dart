@@ -7,8 +7,8 @@ import 'package:my_eat_log/domain/review/entities/review_image.dart';
 import 'package:my_eat_log/domain/review/review_image_repository.dart';
 import 'package:my_eat_log/domain/review/review_repository.dart';
 
-class ItemUpdateButton extends StatelessWidget {
-  const ItemUpdateButton({
+class ReviewUpdateButton extends StatelessWidget {
+  ReviewUpdateButton({
     Key? key,
     required this.snapshot,
     required this.shopNameController,
@@ -19,6 +19,7 @@ class ItemUpdateButton extends StatelessWidget {
     required this.reviewDoc,
     required this.imageFileList,
     required this.imageUrlList,
+    required this.deleteImageList,
   }) : super(key: key);
 
   final QuerySnapshot<ReviewImage> snapshot;
@@ -31,6 +32,8 @@ class ItemUpdateButton extends StatelessWidget {
   // Storageにある写真の中で、削除する写真
   final List<File> imageFileList;
   final List<String> imageUrlList;
+  final List<DeleteImageParameter> deleteImageList;
+  final reviewImages = <ReviewImage>[];
 
   @override
   Widget build(BuildContext context) {
@@ -41,15 +44,6 @@ class ItemUpdateButton extends StatelessWidget {
             .showSnackBar(const SnackBar(content: Text('必要な情報を入力してください')));
         return;
       }
-
-      final reviewImages = <ReviewImage>[];
-      final imageInfoList = snapshot.docs.map((e) {
-        return DeleteImageParameter(
-          documentId: e.id,
-          storagePath: e.data().storagePath,
-        );
-      });
-      final imageIds = imageInfoList.map((e) => e.documentId);
 
       // 写真が選択されていればfirebase Storageに保存する
       if (imageFileList.isNotEmpty) {
@@ -88,44 +82,48 @@ class ItemUpdateButton extends StatelessWidget {
         reviewId: reviewDoc.id,
       );
 
-      if (imageIds.isNotEmpty) {
+      if (deleteImageList.isNotEmpty) {
+        // 修正する
+
+        final _deleteImageList = deleteImageList;
+        final imageIds = _deleteImageList.map((e) => e.documentId);
+        // 全写真のリスト
+        final docs = snapshot.docs;
+        // debugPrint('docs.last.id == doc.id: ${docs.last.id == imageId}');
+
+        await ReviewImageRepository.instance.deletes(
+          // 削除予定の写真リストを渡す
+          deleteImageList: _deleteImageList,
+          reviewId: reviewDoc.id,
+        );
+        // 登録済みの最後の写真と削除された写真のIDを比較
         for (final imageId in imageIds) {
-          // 全写真のリスト
-          final docs = snapshot.docs;
-          debugPrint('docs.last.id == doc.id: ${docs.last.id == imageId}');
-
-          await ReviewImageRepository.instance.deletes(
-            imageInfoList: imageInfoList.toList(),
-            reviewId: reviewDoc.id,
-          );
-
-          // 登録済みの最後の写真と削除された写真のIDを比較
           if (docs.last.id != imageId) {
             // 削除した画像は最後の画像ではなかったので latestImageUrl を書き換える必要はない。
             // 早期リターンする
             return;
           }
+        }
 
-          // 写真リストから削除された写真を取り除く
-          docs.removeLast();
+        // 写真リストから削除された写真を取り除く
+        docs.removeLast();
 
-          // 最後の画像を削除していた場合
-          if (docs.isEmpty) {
-            // latestImageUrl: null にする
-            await ReviewRepository.instance.updateLatestImageUrl(
-              null,
-              reviewId: reviewDoc.id,
-            );
-            return;
-          }
-          // 最後の画像を削除したが、まだ他に画像が残っている場合
-          // 残っている画像のうち、最後の画像を latestImageUrl に設定する
-          final lastDoc = docs.last;
+        // 最後の画像を削除していた場合
+        if (docs.isEmpty) {
+          // latestImageUrl: null にする
           await ReviewRepository.instance.updateLatestImageUrl(
-            lastDoc.data().storageUrl,
+            null,
             reviewId: reviewDoc.id,
           );
+          return;
         }
+        // 最後の画像を削除したが、まだ他に画像が残っている場合
+        // 残っている画像のうち、最後の画像を latestImageUrl に設定する
+        final lastDoc = docs.last;
+        await ReviewRepository.instance.updateLatestImageUrl(
+          lastDoc.data().storageUrl,
+          reviewId: reviewDoc.id,
+        );
       }
 
       /// アップロード済みの写真を削除する
