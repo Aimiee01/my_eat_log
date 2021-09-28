@@ -29,7 +29,8 @@ class _AddRatingViewState extends State<AddRatingView> {
             Icons.star,
             color: Colors.amber,
           ),
-          // 星がタップされたときの処理
+          // Ratingが更新された時にnewRatingStarNumを呼び出し
+          // 値が変更されたことを知らせる
           onRatingUpdate: widget.newRatingStarNum,
         ),
       ],

@@ -134,7 +134,6 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                       },
                       removeImageUrls: (imageUrlIndex) {
                         setState(() {
-                          // RangeError (RangeError (index): Invalid value: Not in inclusive range 0..2: 3)
                           _imageUrlList.removeAt(imageUrlIndex);
                         });
                       },

@@ -61,6 +61,9 @@ class _AddImagesViewState extends State<AddImagesView> {
                               onPressed: () => Navigator.pop(context),
                               child: const Text('キャンセル')),
                           TextButton(
+                              style: TextButton.styleFrom(
+                                primary: Colors.redAccent,
+                              ),
                               onPressed: () {
                                 setState(() {
                                   // 削除する写真を指定するときは
@@ -69,7 +72,7 @@ class _AddImagesViewState extends State<AddImagesView> {
                                 });
                                 Navigator.pop(context);
                               },
-                              child: const Text('OK')),
+                              child: const Text('削除')),
                         ],
                       );
                     });

@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class EditRatingView extends StatefulWidget {
-  const EditRatingView(
-      {Key? key,
-      // required this.newRatingStarNum,
-      required this.initialRating,
-      required this.newRating})
-      : super(key: key);
+  const EditRatingView({
+    Key? key,
+    required this.initialRating,
+    required this.newRating,
+  }) : super(key: key);
 
-  // final ValueChanged<double> newRatingStarNum;
   final double initialRating;
   final ValueChanged<double> newRating;
 

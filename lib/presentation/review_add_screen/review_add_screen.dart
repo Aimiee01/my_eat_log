@@ -19,6 +19,8 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
   final _shopNameController = TextEditingController();
   final _menuNameController = TextEditingController();
   final _commentController = TextEditingController();
+
+  /// 評価の初期値として0を代入
   late double rating = 0;
   final List<File> _imageFileList = [];
 
@@ -67,7 +69,8 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
 
                   // 評価表示部分
                   AddRatingView(
-                    // ratingでユーザーが入力した評価を受け取る
+                    // _ratingで受け取り
+                    // ratingにユーザーが入力した値を代入して更新
                     newRatingStarNum: (_rating) {
                       setState(() {
                         rating = _rating;
