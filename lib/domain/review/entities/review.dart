@@ -6,6 +6,8 @@ class ReviewField {
   static const comment = 'comment';
   static const latestImageUrl = 'latestImageUrl';
   static const ratingStar = 'ratingStar';
+  static const favoriteEnable = 'favoriteEnable';
+  static const visitedDate = 'visitedDate';
 }
 
 class Review {
@@ -15,6 +17,8 @@ class Review {
     required this.comment,
     this.latestImageUrl,
     required this.ratingStar,
+    required this.favoriteEnable,
+    required this.visitedDate,
   });
   Review.fromJson(Map<String, Object?> json)
       : this(
@@ -23,6 +27,8 @@ class Review {
           comment: json[ReviewField.comment]! as String,
           latestImageUrl: json[ReviewField.latestImageUrl] as String?,
           ratingStar: json[ReviewField.ratingStar]! as double,
+          favoriteEnable: json[ReviewField.favoriteEnable]! as bool,
+          visitedDate: json[ReviewField.visitedDate]! as String,
         );
 
   final String shopName;
@@ -30,6 +36,8 @@ class Review {
   final String comment;
   final String? latestImageUrl;
   final double ratingStar;
+  final bool favoriteEnable;
+  final String visitedDate;
 
   Map<String, Object?> toJson() {
     return {
@@ -38,6 +46,8 @@ class Review {
       ReviewField.comment: comment,
       ReviewField.latestImageUrl: latestImageUrl,
       ReviewField.ratingStar: ratingStar,
+      ReviewField.favoriteEnable: favoriteEnable,
+      ReviewField.visitedDate: visitedDate,
     };
   }
 }

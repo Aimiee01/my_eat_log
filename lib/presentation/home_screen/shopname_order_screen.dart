@@ -6,16 +6,16 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:my_eat_log/domain/review/entities/review.dart';
 import 'package:my_eat_log/domain/review/review_repository.dart';
 import 'package:my_eat_log/presentation/review_edit_screen/review_edit_screen.dart';
-import 'review_add_screen/review_add_screen.dart';
+import '../review_add_screen/review_add_screen.dart';
 
-class RatingOrderScreen extends StatefulWidget {
-  const RatingOrderScreen({Key? key}) : super(key: key);
+class ShopNameOrderScreen extends StatefulWidget {
+  const ShopNameOrderScreen({Key? key}) : super(key: key);
 
   @override
-  _RatingOrderScreenState createState() => _RatingOrderScreenState();
+  _ShopNameOrderScreenState createState() => _ShopNameOrderScreenState();
 }
 
-class _RatingOrderScreenState extends State<RatingOrderScreen> {
+class _ShopNameOrderScreenState extends State<ShopNameOrderScreen> {
   /// すべてのレビューコレクション
   late Stream<QuerySnapshot<Review>> _reviewCollectionStream;
 
@@ -100,6 +100,7 @@ class _RatingOrderScreenState extends State<RatingOrderScreen> {
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: Colors.brown,
                             ),
                             textAlign: TextAlign.start,
                           ),

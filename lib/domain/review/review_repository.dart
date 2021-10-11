@@ -12,6 +12,10 @@ class ReviewRepository {
     return reviewsRef.snapshots();
   }
 
+  Stream<QuerySnapshot<Review>> fetchAllRating() {
+    return reviewsRef.orderBy('ratingStar', descending: true).snapshots();
+  }
+
   /// reviewを一件、ドキュメントID[reviewId]を指定して新規追加する。
   Future<void> add(
     Review data, {
@@ -48,12 +52,20 @@ class ReviewRepository {
     // );
   }
 
-  ///
+  /// favoriteEnableを更新する
+  // Future<void> updateFavorite({
+  //   required bool favorited,
+  //   required String reviewId,
+  // }) async {
+  //   await reviewsRef.doc(reviewId)
+  // }
+
   Future<void> update(
     String shopName,
     String menuName,
     String comment,
-    double ratingStar, {
+    double ratingStar,
+    String latestVisitedDate, {
     required String reviewId,
   }) async {
     await reviewsRef.doc(reviewId).update(
@@ -63,6 +75,7 @@ class ReviewRepository {
         ReviewField.comment: comment,
         ReviewField.ratingStar: ratingStar,
         // 新しく追加される写真をlatestImageUrlに入れる
+        ReviewField.visitedDate: latestVisitedDate,
       },
     );
   }

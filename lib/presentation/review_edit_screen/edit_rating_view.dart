@@ -18,23 +18,31 @@ class EditRatingView extends StatefulWidget {
 class _EditRatingViewState extends State<EditRatingView> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        RatingBar.builder(
-          initialRating: widget.initialRating,
-          minRating: 0,
-          direction: Axis.horizontal,
-          allowHalfRating: true,
-          itemCount: 5,
-          itemPadding: const EdgeInsets.symmetric(horizontal: 2),
-          itemBuilder: (context, _) => const Icon(
-            Icons.star,
-            color: Colors.amber,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            '評価   ',
+            style: TextStyle(fontSize: 18, color: Colors.black54),
           ),
-          // 星がタップされたときの処理
-          onRatingUpdate: widget.newRating,
-        ),
-      ],
+          RatingBar.builder(
+            initialRating: widget.initialRating,
+            minRating: 0,
+            direction: Axis.horizontal,
+            allowHalfRating: true,
+            itemCount: 5,
+            itemPadding: const EdgeInsets.symmetric(horizontal: 2),
+            itemBuilder: (context, _) => const Icon(
+              Icons.star,
+              color: Colors.amber,
+            ),
+            // 星がタップされたときの処理
+            onRatingUpdate: widget.newRating,
+          ),
+        ],
+      ),
     );
   }
 }

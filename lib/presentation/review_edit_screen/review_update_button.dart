@@ -20,6 +20,7 @@ class ReviewUpdateButton extends StatelessWidget {
     required this.imageFileList,
     required this.imageUrlList,
     required this.deleteImageList,
+    required this.latestVisitedDate,
   }) : super(key: key);
 
   final QuerySnapshot<ReviewImage> snapshot;
@@ -34,6 +35,7 @@ class ReviewUpdateButton extends StatelessWidget {
   final List<String> imageUrlList;
   final List<DeleteImageParameter> deleteImageList;
   final reviewImages = <ReviewImage>[];
+  final String latestVisitedDate;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +81,7 @@ class ReviewUpdateButton extends StatelessWidget {
         menuNameController.text,
         commentController.text,
         ratingStar,
+        latestVisitedDate,
         reviewId: reviewDoc.id,
       );
 
@@ -155,7 +158,8 @@ class ReviewUpdateButton extends StatelessWidget {
       },
       child: const Text(
         '更新',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        style: TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
       ),
     );
   }

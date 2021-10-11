@@ -40,7 +40,8 @@ class DeleteReviewButton extends StatelessWidget {
       ),
       child: const Text(
         '削除',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        style: TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
       ),
     );
   }

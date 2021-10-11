@@ -17,11 +17,15 @@ class AddReviewButton extends StatelessWidget {
     required this.commentController,
     required this.globalKey,
     required this.ratingStar,
+    required this.favoriteEnable,
+    required this.visitedDate,
   }) : super(key: key);
   final TextEditingController shopNameController;
   final TextEditingController menuNameController;
   final TextEditingController commentController;
   final double ratingStar;
+  final bool favoriteEnable;
+  final String visitedDate;
 
   /// カメラロールで選択された写真のリスト
   final List<File> _imageFileList;
@@ -75,6 +79,10 @@ class AddReviewButton extends StatelessWidget {
         latestImageUrl:
             reviewImages.isEmpty ? null : reviewImages.last.storageUrl,
         ratingStar: ratingStar,
+        // お気に入りはfalseが初期値
+        favoriteEnable: favoriteEnable,
+        // ユーザーが選択した来店日を代入
+        visitedDate: visitedDate,
       );
       await ReviewRepository.instance.add(
         newReview,
@@ -103,11 +111,10 @@ class AddReviewButton extends StatelessWidget {
       onPressed: () async {
         await _onSaveButtonPressed();
       },
-      style: ElevatedButton.styleFrom(
-          primary: Colors.blue, onPrimary: Colors.white),
       child: const Text(
         '登録',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        style: TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
       ),
     );
   }

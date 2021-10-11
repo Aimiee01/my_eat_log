@@ -1,8 +1,11 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:my_eat_log/presentation/review_add_screen/add_images_view.dart';
 import 'package:my_eat_log/presentation/review_add_screen/add_rating_view.dart';
 import 'package:my_eat_log/presentation/review_add_screen/add_textfields_view.dart';
+
+import 'add_date_view.dart';
 import 'add_review_button.dart';
 
 class ReviewAddScreen extends StatefulWidget {
@@ -19,10 +22,12 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
   final _shopNameController = TextEditingController();
   final _menuNameController = TextEditingController();
   final _commentController = TextEditingController();
+  final bool favoriteEnable = false;
 
   /// 評価の初期値として0を代入
   late double rating = 0;
   final List<File> _imageFileList = [];
+  late String visitedDate = '';
 
   /// ユーザーが選択したデバイスの写真ファイル
   File? imageFile;
@@ -47,6 +52,14 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              // 来店日時
+              AddDateView(
+                visitedDateChanged: (_visitedDate) {
+                  setState(() {
+                    visitedDate = _visitedDate;
+                  });
+                },
+              ),
               // 文字入力部分
               AddTextfieldsView(
                   formKey: _formKey,
@@ -55,19 +68,18 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
                   commentController: _commentController),
 
               // 写真表示部分
-              AddImagesView(imageFileList: _imageFileList),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: AddImagesView(imageFileList: _imageFileList),
+              ),
+              // 評価表示部分
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(right: 20),
-                    child: Text(
-                      '評価',
-                      style: TextStyle(fontSize: 18, color: Colors.black54),
-                    ),
+                  const Text(
+                    '評価   ',
+                    style: TextStyle(fontSize: 18, color: Colors.black54),
                   ),
-
-                  // 評価表示部分
                   AddRatingView(
                     // _ratingで受け取り
                     // ratingにユーザーが入力した値を代入して更新
@@ -76,17 +88,21 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
                         rating = _rating;
                       });
                     },
-                  )
+                  ),
                 ],
               ),
-              const SizedBox(height: 24),
+
               // 新規レビューの「登録」ボタン
-              AddReviewButton(_imageFileList,
-                  shopNameController: _shopNameController,
-                  menuNameController: _menuNameController,
-                  commentController: _commentController,
-                  ratingStar: rating,
-                  globalKey: _formKey),
+              AddReviewButton(
+                _imageFileList,
+                shopNameController: _shopNameController,
+                menuNameController: _menuNameController,
+                commentController: _commentController,
+                ratingStar: rating,
+                globalKey: _formKey,
+                favoriteEnable: favoriteEnable,
+                visitedDate: visitedDate,
+              ),
             ],
           ),
         ),
