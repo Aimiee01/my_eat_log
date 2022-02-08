@@ -19,7 +19,7 @@ class _EditRatingViewState extends State<EditRatingView> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      padding: const EdgeInsets.only(top: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -33,6 +33,7 @@ class _EditRatingViewState extends State<EditRatingView> {
             direction: Axis.horizontal,
             allowHalfRating: true,
             itemCount: 5,
+            itemSize: 30,
             itemPadding: const EdgeInsets.symmetric(horizontal: 2),
             itemBuilder: (context, _) => const Icon(
               Icons.star,

@@ -1,11 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:my_eat_log/presentation/home_screen/rating_order_screen.dart';
+import 'package:provider/provider.dart';
+
+import '../user_dao.dart';
 import 'presentation/favorite_screen.dart';
 import 'presentation/home_screen/shopname_order_screen.dart';
 import 'presentation/light_theme_data.dart';
+import 'presentation/login.dart';
 import 'presentation/setting_screen.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -13,13 +18,22 @@ firebase_storage.FirebaseStorage storage =
     firebase_storage.FirebaseStorage.instance;
 
 Future<void> main() async {
+  // 初期化処理
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: lightThemeData,
-      home: MyApp(),
+      home: Consumer<UserDao>(
+        builder: (context, userDao, child) {
+          if (userDao.isLoggedIn()) {
+            return MyApp();
+          } else {
+            return const Login();
+          }
+        },
+      ),
     ),
   );
 }
@@ -43,7 +57,7 @@ class MyApp extends StatelessWidget {
       length: _tabs.length,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('My Eat Log'),
+          title: const Text('MyEatLog'),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(30),
             child: TabBar(

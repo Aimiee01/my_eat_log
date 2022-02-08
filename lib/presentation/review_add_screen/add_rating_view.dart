@@ -16,24 +16,28 @@ class AddRatingView extends StatefulWidget {
 class _AddRatingViewState extends State<AddRatingView> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        RatingBar.builder(
-          initialRating: 0,
-          minRating: 0,
-          direction: Axis.horizontal,
-          allowHalfRating: true,
-          itemCount: 5,
-          itemPadding: const EdgeInsets.symmetric(horizontal: 2),
-          itemBuilder: (context, _) => const Icon(
-            Icons.star,
-            color: Colors.amber,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          RatingBar.builder(
+            initialRating: 0,
+            minRating: 0,
+            direction: Axis.horizontal,
+            allowHalfRating: true,
+            itemCount: 5,
+            itemSize: 30,
+            itemPadding: const EdgeInsets.symmetric(horizontal: 2),
+            itemBuilder: (context, _) => const Icon(
+              Icons.star,
+              color: Colors.amber,
+            ),
+            // Ratingが更新された時にnewRatingStarNumを呼び出し
+            // 値が変更されたことを知らせる
+            onRatingUpdate: widget.newRatingStarNum,
           ),
-          // Ratingが更新された時にnewRatingStarNumを呼び出し
-          // 値が変更されたことを知らせる
-          onRatingUpdate: widget.newRatingStarNum,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

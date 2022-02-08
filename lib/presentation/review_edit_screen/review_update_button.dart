@@ -21,6 +21,7 @@ class ReviewUpdateButton extends StatelessWidget {
     required this.imageUrlList,
     required this.deleteImageList,
     required this.latestVisitedDate,
+    required this.favoriteEnable,
   }) : super(key: key);
 
   final QuerySnapshot<ReviewImage> snapshot;
@@ -36,6 +37,7 @@ class ReviewUpdateButton extends StatelessWidget {
   final List<DeleteImageParameter> deleteImageList;
   final reviewImages = <ReviewImage>[];
   final String latestVisitedDate;
+  final bool favoriteEnable;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +85,7 @@ class ReviewUpdateButton extends StatelessWidget {
         ratingStar,
         latestVisitedDate,
         reviewId: reviewDoc.id,
+        favoriteEnable: favoriteEnable,
       );
 
       if (deleteImageList.isNotEmpty) {
@@ -136,7 +139,7 @@ class ReviewUpdateButton extends StatelessWidget {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('登録されました'),
+          content: Text('更新されました'),
         ),
       );
       // imagePathにはファイル名を指定する

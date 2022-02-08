@@ -69,7 +69,7 @@ class _ReviewAddScreenState extends State<ReviewAddScreen> {
 
               // 写真表示部分
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
+                padding: const EdgeInsets.only(top: 24),
                 child: AddImagesView(imageFileList: _imageFileList),
               ),
               // 評価表示部分

@@ -67,6 +67,7 @@ class ReviewRepository {
     double ratingStar,
     String latestVisitedDate, {
     required String reviewId,
+    required bool favoriteEnable,
   }) async {
     await reviewsRef.doc(reviewId).update(
       {
@@ -75,6 +76,7 @@ class ReviewRepository {
         ReviewField.comment: comment,
         ReviewField.ratingStar: ratingStar,
         // 新しく追加される写真をlatestImageUrlに入れる
+        ReviewField.favoriteEnable: favoriteEnable,
         ReviewField.visitedDate: latestVisitedDate,
       },
     );

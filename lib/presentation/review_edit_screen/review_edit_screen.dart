@@ -48,7 +48,11 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   late bool favoriteEnable;
   late String latestVisitedDate;
 
-  void favoritedCallback() {}
+  void favoritedCallback() {
+    setState(() {
+      favoriteEnable == true ? favoriteEnable = false : favoriteEnable = true;
+    });
+  }
 
   @override
   // fireStoreの文字列を参照する必要があるためinitStateで代入する
@@ -163,7 +167,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                         });
                       },
                     ),
-                    // ★★★★★表示部分（評価）
+                    // 評価表示部分
                     EditRatingView(
                       // FireStoreに保存されているratingを表示
                       initialRating: newRating,
@@ -174,12 +178,19 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                         });
                       },
                     ),
-                    if (favoriteEnable)
-                      TextButton(
-                        // TODO タップした時にお気に入りを反転させる処理
-                        onPressed: favoritedCallback,
-                        child: const Text('お気に入りに追加済み'),
+
+                    /// お気に入りボタン
+                    IconButton(
+                      onPressed: favoritedCallback,
+                      icon: Icon(
+                        favoriteEnable == true
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: favoriteEnable == true
+                            ? Colors.redAccent
+                            : Colors.black12,
                       ),
+                    ),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -203,6 +214,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                             imageUrlList: _imageUrlList,
                             deleteImageList: _deleteImageList,
                             latestVisitedDate: latestVisitedDate,
+                            favoriteEnable: favoriteEnable,
                           ),
                         ),
                       ],
